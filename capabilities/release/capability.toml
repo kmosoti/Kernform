@@ -1,0 +1,16 @@
+schema = "kernform.capability/v1"
+id = "release"
+version = "1.0.0"
+requires = ["python-package"]
+tests = ["release-state", "artifact-metadata"]
+conformance = ["KF-GIT-001", "KF-VERSION-001"]
+
+[[files]]
+source = "resources/release-flow.toml"
+destination = ".kernform/release-flow.toml"
+ownership = "managed"
+
+[[files]]
+source = "resources/RELEASE.md"
+destination = "docs/RELEASE.md"
+ownership = "seeded"

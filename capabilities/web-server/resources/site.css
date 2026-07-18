@@ -1,0 +1,4 @@
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+body { margin: 0 auto; max-width: 48rem; padding: 2rem; line-height: 1.5; }
+button { font: inherit; padding: 0.6rem 1rem; }
+a:focus, button:focus { outline: 0.2rem solid currentColor; outline-offset: 0.2rem; }

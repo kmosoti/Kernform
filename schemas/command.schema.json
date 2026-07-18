@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kernform:schema:command:v1",
+  "title": "Kernform command result v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "command", "status", "exit_code", "result", "diagnostics", "artifacts"],
+  "properties": {
+    "schema": {"const": "kernform.command/v1"},
+    "command": {"type": "string", "minLength": 1},
+    "status": {"enum": ["success", "failure", "refused"]},
+    "exit_code": {"type": "integer", "minimum": 0, "maximum": 5},
+    "result": {},
+    "diagnostics": {"type": "array", "items": {"$ref": "#/$defs/diagnostic"}},
+    "artifacts": {"type": "array", "items": {"$ref": "#/$defs/artifact"}}
+  },
+  "$defs": {
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "severity", "message", "context"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^KF-[A-Z]+-[0-9]{3}$"},
+        "severity": {"enum": ["info", "warning", "error"]},
+        "message": {"type": "string", "minLength": 1},
+        "context": {"type": "object"}
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "path", "hash"],
+      "properties": {
+        "kind": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1},
+        "hash": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"}
+      }
+    }
+  }
+}

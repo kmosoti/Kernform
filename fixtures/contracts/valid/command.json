@@ -1,0 +1,15 @@
+{
+  "schema": "kernform.command/v1",
+  "command": "init",
+  "status": "success",
+  "exit_code": 0,
+  "result": {"path": "example-project", "changed": true},
+  "diagnostics": [],
+  "artifacts": [
+    {
+      "kind": "project",
+      "path": "example-project",
+      "hash": null
+    }
+  ]
+}

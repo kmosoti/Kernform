@@ -1,0 +1,64 @@
+schema = "kernform.capability/v1"
+id = "python-package"
+version = "1.0.0"
+tests = ["python-unit", "wheel-import"]
+conformance = ["KF-ARCH-001", "KF-VERSION-001"]
+
+[dependencies]
+python = "python"
+maturin = "maturin"
+
+[[files]]
+source = "resources/README.md"
+destination = "README.md"
+ownership = "seeded"
+
+[[files]]
+source = "resources/gitignore"
+destination = ".gitignore"
+ownership = "managed"
+
+[[files]]
+source = "resources/python-version"
+destination = ".python-version"
+ownership = "generated"
+
+[[files]]
+source = "resources/pyproject.toml"
+destination = "pyproject.toml"
+ownership = "managed"
+
+[[files]]
+source = "resources/kernform.toml"
+destination = "kernform.toml"
+ownership = "managed"
+
+[[files]]
+source = "resources/toolchains.lock.toml"
+destination = ".kernform/toolchains.lock.toml"
+ownership = "generated"
+
+[[files]]
+source = "resources/__init__.py"
+destination = "python/{{ module_name }}/__init__.py"
+ownership = "managed"
+
+[[files]]
+source = "resources/api.py"
+destination = "python/{{ module_name }}/api.py"
+ownership = "managed"
+
+[[files]]
+source = "resources/models.py"
+destination = "python/{{ module_name }}/models.py"
+ownership = "managed"
+
+[[files]]
+source = "resources/_native.pyi"
+destination = "python/{{ module_name }}/_native.pyi"
+ownership = "generated"
+
+[[files]]
+source = "resources/py.typed"
+destination = "python/{{ module_name }}/py.typed"
+ownership = "generated"

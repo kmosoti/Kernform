@@ -1,0 +1,16 @@
+[package]
+name = "example-api-python"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[lib]
+name = "_native"
+crate-type = ["cdylib"]
+
+[dependencies]
+example_api-core = { package = "example-api-core", path = "../example-api-core" }
+pyo3.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,25 @@
+schema = "kernform/v1"
+generator_version = "0.1.0"
+
+[project]
+name = "kernform"
+profile = "cli"
+capabilities = ["python-package", "rust-core", "pyo3-bindings", "testing", "locks-base", "ci", "release", "podman", "nushell-human", "nushell-agent", "cli"]
+
+[git]
+enabled = true
+initial_branch = "main"
+initial_commit = false
+create_remote = false
+
+[versions]
+policy = "newest-stable-exact"
+allow_prerelease = false
+offline_catalog = "fixtures/catalogs/stable-v1.json"
+
+[web]
+javascript = "none"
+
+[containers]
+engine = "podman"
+rootless = true

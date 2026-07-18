@@ -1,0 +1,6 @@
+{
+  "schema": "kernform.performance-baseline/v1",
+  "platform": "linux-x86_64",
+  "operation": "library-plan-1000",
+  "maximum_seconds": 10.0
+}

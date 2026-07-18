@@ -1,0 +1,17 @@
+[Unit]
+Description={{ project_name }} rootless runtime
+
+[Container]
+Image=localhost/{{ project_name }}:0.1.0
+ContainerName={{ project_name }}-%H
+ReadOnly=true
+User=65532:65532
+PublishPort=127.0.0.1:8000:8000
+NoNewPrivileges=true
+DropCapability=all
+
+[Service]
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

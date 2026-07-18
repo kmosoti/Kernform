@@ -1,0 +1,32 @@
+name: "example-api-web-${KERNFORM_WORKTREE_HASH:-default}"
+services:
+  human:
+    build:
+      context: ..
+      dockerfile: containers/Containerfile
+      target: dev-human
+    user: "1000:1000"
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges"]
+    tmpfs: ["/tmp", "/workspace/target"]
+    networks: [dev]
+  agent:
+    build:
+      context: ..
+      dockerfile: containers/Containerfile
+      target: dev-agent
+    user: "1000:1000"
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges"]
+    stdin_open: false
+    tty: false
+    environment:
+      NO_COLOR: "1"
+      PAGER: cat
+    tmpfs: ["/tmp", "/workspace/target"]
+    networks: [dev]
+networks:
+  dev:
+    name: "example-api-web-${KERNFORM_WORKTREE_HASH:-default}-dev"

@@ -1,0 +1,46 @@
+schema = "kernform.capability/v1"
+id = "nushell-human"
+version = "1.0.0"
+requires = ["python-package"]
+tests = ["shell-human"]
+conformance = ["KF-BOUNDARY-001"]
+
+[[files]]
+source = "resources/config.nu"
+destination = "shell/human/config.nu"
+ownership = "seeded"
+
+[[files]]
+source = "resources/env.nu"
+destination = "shell/human/env.nu"
+ownership = "seeded"
+
+[[files]]
+source = "resources/mod.nu"
+destination = "shell/modules/kf/mod.nu"
+ownership = "managed"
+
+[[files]]
+source = "resources/project.nu"
+destination = "shell/modules/kf/project.nu"
+ownership = "managed"
+
+[[files]]
+source = "resources/test.nu"
+destination = "shell/modules/kf/test.nu"
+ownership = "managed"
+
+[[files]]
+source = "resources/container.nu"
+destination = "shell/modules/kf/container.nu"
+ownership = "managed"
+
+[[files]]
+source = "resources/release.nu"
+destination = "shell/modules/kf/release.nu"
+ownership = "managed"
+
+[[files]]
+source = "resources/inspect.nu"
+destination = "shell/modules/kf/inspect.nu"
+ownership = "managed"

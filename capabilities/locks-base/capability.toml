@@ -1,0 +1,11 @@
+schema = "kernform.capability/v1"
+id = "locks-base"
+version = "1.0.0"
+requires = ["testing"]
+tests = ["python-lock-frozen"]
+conformance = ["KF-VERSION-001"]
+
+[[files]]
+source = "resources/uv.lock"
+destination = "uv.lock"
+ownership = "generated"

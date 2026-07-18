@@ -1,0 +1,26 @@
+schema = "kernform.capability/v1"
+id = "web-server"
+version = "1.0.0"
+requires = ["api"]
+tests = ["web-ssr", "web-no-javascript", "web-accessibility"]
+conformance = ["KF-WEB-001", "KF-BOUNDARY-001"]
+
+[[files]]
+source = "resources/web.py"
+destination = "python/{{ module_name }}/web.py"
+ownership = "managed"
+
+[[files]]
+source = "resources/index.html"
+destination = "python/{{ module_name }}/templates/index.html"
+ownership = "managed"
+
+[[files]]
+source = "resources/site.css"
+destination = "python/{{ module_name }}/static/site.css"
+ownership = "managed"
+
+[[files]]
+source = "resources/test_web.py"
+destination = "tests/test_web.py"
+ownership = "managed"

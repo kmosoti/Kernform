@@ -3,38 +3,36 @@ name: CI
 on:
   pull_request:
   push:
-    branches:
-      - main
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
-  validate:
-    runs-on: ubuntu-latest
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out exact source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          fetch-depth: 0
-      - uses: astral-sh/setup-uv@v5
-      - name: Install dependencies
-        run: uv sync --all-groups
-      - name: Ruff check
-        run: uv run ruff check
-      - name: Ruff format check
-        run: uv run ruff format --check
-      - name: Pyright
-        run: uv run pyright
-      - name: Tests
-        run: uv run pytest
-      - name: TEA KB validate
-        run: uv run tea-kb validate
-      - name: TEA KB updated date check
-        if: github.event_name == 'pull_request'
-        run: |
-          git fetch origin "${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}"
-          uv run tea-kb validate --check-updated-since "origin/${{ github.base_ref }}" --strict
-      - name: TEA KB build check
-        run: uv run tea-kb build --check
-      - name: Upload generated graph artifacts
-        uses: actions/upload-artifact@v4
+          persist-credentials: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
         with:
-          name: tea-generated-graph
-          path: graph/generated
+          version: 0.11.26
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable action
+        with:
+          toolchain: 1.96.0
+          components: rustfmt, clippy
+      - name: Synchronize exact Python environment
+        run: uv sync --all-groups --frozen
+      - name: Run maintained fast tier
+        run: uv run kernform --agent test fast

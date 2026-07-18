@@ -1,0 +1,16 @@
+schema = "kernform.capability/v1"
+id = "nushell-agent"
+version = "1.0.0"
+requires = ["nushell-human"]
+tests = ["shell-agent", "shell-timeout", "shell-exit"]
+conformance = ["KF-BOUNDARY-001", "KF-ENV-001"]
+
+[[files]]
+source = "resources/config.nu"
+destination = "shell/agent/config.nu"
+ownership = "generated"
+
+[[files]]
+source = "resources/env.nu"
+destination = "shell/agent/env.nu"
+ownership = "generated"

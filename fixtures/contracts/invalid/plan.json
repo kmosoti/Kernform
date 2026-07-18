@@ -1,0 +1,16 @@
+{
+  "schema": "kernform.plan/v1",
+  "plan_id": "bad",
+  "generator_version": "0.1.0",
+  "intent": {"name": "example", "profile": "api", "capabilities": [], "git": true},
+  "catalog": {
+    "id": "floating",
+    "hash": "bad",
+    "resolved_at": "tomorrow",
+    "source": "not a URI",
+    "versions": {"python": "latest"},
+    "images": {"python": "python:latest"}
+  },
+  "operations": [{"id": "unsafe", "kind": "run_command", "command": "rm -rf /"}],
+  "diagnostics": []
+}

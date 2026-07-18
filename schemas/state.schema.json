@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kernform:schema:state:v1",
+  "title": "Kernform managed state v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "generator_version", "project_root", "manifest_hash", "toolchains", "files"],
+  "properties": {
+    "schema": {"const": "kernform.state/v1"},
+    "generator_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "project_root": {"type": "string", "minLength": 1},
+    "manifest_hash": {"$ref": "#/$defs/sha256"},
+    "toolchains": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["catalog_id", "catalog_hash"],
+      "properties": {
+        "catalog_id": {"type": "string", "minLength": 1},
+        "catalog_hash": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "files": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/file"}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "hash", "ownership"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1, "not": {"pattern": "(^|/)\\.git(/|$)"}},
+        "hash": {"$ref": "#/$defs/sha256"},
+        "ownership": {"enum": ["managed", "seeded", "generated", "user", "external"]}
+      }
+    }
+  }
+}

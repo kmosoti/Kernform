@@ -1,0 +1,33 @@
+schema = "kernform.capability/v1"
+id = "rust-core"
+version = "1.0.0"
+tests = ["rust-unit", "rust-doc"]
+conformance = ["KF-ARCH-001", "KF-BOUNDARY-001"]
+
+[dependencies]
+rust = "rust"
+
+[[files]]
+source = "resources/Cargo.toml"
+destination = "Cargo.toml"
+ownership = "managed"
+
+[[files]]
+source = "resources/rust-toolchain.toml"
+destination = "rust-toolchain.toml"
+ownership = "generated"
+
+[[files]]
+source = "resources/Cargo.lock"
+destination = "Cargo.lock"
+ownership = "generated"
+
+[[files]]
+source = "resources/core-Cargo.toml"
+destination = "crates/{{ project_name }}-core/Cargo.toml"
+ownership = "managed"
+
+[[files]]
+source = "resources/lib.rs"
+destination = "crates/{{ project_name }}-core/src/lib.rs"
+ownership = "managed"

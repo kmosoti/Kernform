@@ -1,0 +1,10 @@
+{
+  "schema": "command/v0",
+  "command": "init",
+  "status": "maybe",
+  "exit_code": 99,
+  "result": null,
+  "diagnostics": [{"id": "unstable", "severity": "fatal", "message": "bad", "context": {}}],
+  "artifacts": [],
+  "unexpected": true
+}

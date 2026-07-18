@@ -1,0 +1,17 @@
+{
+  "schema": "kernform.state/v1",
+  "generator_version": "0.1.0",
+  "project_root": "example-project",
+  "manifest_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "toolchains": {
+    "catalog_id": "stable-2026-07-17",
+    "catalog_hash": "1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "hash": "2222222222222222222222222222222222222222222222222222222222222222",
+      "ownership": "seeded"
+    }
+  ]
+}
