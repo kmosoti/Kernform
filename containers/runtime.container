@@ -1,0 +1,16 @@
+[Unit]
+Description=Kernform rootless runtime
+
+[Container]
+Image=localhost/kernform:0.1.0
+ContainerName=kernform-%H
+ReadOnly=true
+User=65532:65532
+NoNewPrivileges=true
+DropCapability=all
+
+[Service]
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

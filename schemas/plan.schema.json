@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kernform:schema:plan:v1",
+  "title": "Kernform immutable plan v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "plan_id", "generator_version", "intent", "catalog", "operations", "diagnostics"],
+  "properties": {
+    "schema": {"const": "kernform.plan/v1"},
+    "plan_id": {"$ref": "#/$defs/sha256"},
+    "generator_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "profile", "capabilities", "git"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9-]{0,62}$"},
+        "profile": {"enum": ["library", "cli", "api"]},
+        "capabilities": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "git": {"type": "boolean"}
+      }
+    },
+    "catalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "hash", "resolved_at", "source", "versions", "images"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "hash": {"$ref": "#/$defs/sha256"},
+        "resolved_at": {"type": "string", "format": "date-time"},
+        "source": {"type": "string", "format": "uri"},
+        "versions": {"type": "object", "additionalProperties": {"type": "string", "minLength": 1}},
+        "images": {"type": "object", "additionalProperties": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"}}
+      }
+    },
+    "operations": {"type": "array", "items": {"$ref": "#/$defs/operation"}},
+    "diagnostics": {"type": "array", "items": {"$ref": "#/$defs/diagnostic"}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "ownership": {"enum": ["managed", "seeded", "generated", "user", "external"]},
+    "operation": {
+      "oneOf": [
+        {"$ref": "#/$defs/createDirectory"},
+        {"$ref": "#/$defs/writeFile"},
+        {"$ref": "#/$defs/patchDocument"},
+        {"$ref": "#/$defs/runCommand"},
+        {"$ref": "#/$defs/initGit"},
+        {"$ref": "#/$defs/check"}
+      ]
+    },
+    "baseOperation": {
+      "type": "object",
+      "properties": {"id": {"type": "string", "minLength": 1}},
+      "required": ["id"]
+    },
+    "createDirectory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "path"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "kind": {"const": "create_directory"},
+        "path": {"type": "string", "minLength": 1}
+      }
+    },
+    "writeFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "path", "content", "ownership", "expected_hash"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "kind": {"const": "write_file"},
+        "path": {"type": "string", "minLength": 1},
+        "content": {"type": "string"},
+        "ownership": {"$ref": "#/$defs/ownership"},
+        "expected_hash": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]}
+      }
+    },
+    "patchDocument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "path", "format", "patch", "expected_hash"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "kind": {"const": "patch_document"},
+        "path": {"type": "string", "minLength": 1},
+        "format": {"enum": ["json", "toml"]},
+        "patch": {"type": "object"},
+        "expected_hash": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "runCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "program", "args", "cwd", "environment", "timeout_seconds"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "kind": {"const": "run_command"},
+        "program": {"type": "string", "minLength": 1},
+        "args": {"type": "array", "items": {"type": "string"}},
+        "cwd": {"type": "string", "minLength": 1},
+        "environment": {"type": "object", "additionalProperties": {"type": "string"}},
+        "timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 86400}
+      }
+    },
+    "initGit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "initial_branch"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "kind": {"const": "init_git_repository"},
+        "initial_branch": {"type": "string", "minLength": 1}
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "check"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "kind": {"const": "check"},
+        "check": {"type": "string", "minLength": 1}
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "severity", "message", "context"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^KF-[A-Z]+-[0-9]{3}$"},
+        "severity": {"enum": ["info", "warning", "error"]},
+        "message": {"type": "string", "minLength": 1},
+        "context": {"type": "object"}
+      }
+    }
+  }
+}

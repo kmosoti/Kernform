@@ -1,0 +1,19 @@
+schema = "kernform.capability/v1"
+id = "pyo3-bindings"
+version = "1.0.0"
+requires = ["python-package", "rust-core"]
+tests = ["boundary-import", "differential"]
+conformance = ["KF-BOUNDARY-001"]
+
+[dependencies]
+pyo3 = "pyo3"
+
+[[files]]
+source = "resources/Cargo.toml"
+destination = "crates/{{ project_name }}-python/Cargo.toml"
+ownership = "managed"
+
+[[files]]
+source = "resources/lib.rs"
+destination = "crates/{{ project_name }}-python/src/lib.rs"
+ownership = "managed"

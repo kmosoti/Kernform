@@ -1,0 +1,207 @@
+{
+  "schema": "kernform.state/v1",
+  "generator_version": "0.1.0",
+  "project_root": "example-api",
+  "manifest_hash": "622d8cdd7583058b41ec817edcba72effaeaa2929ea73ebee9569a4158498f48",
+  "toolchains": {
+    "catalog_id": "stable-2026-07-18-linux-amd64",
+    "catalog_hash": "b83d3720ba10c51b49a5d349069b3cf194a613fdf813056e58b3fbc61675fb8b"
+  },
+  "files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "hash": "d1144011ff8ea3bdff15d9a54c3f34731210f420a59ccaf9ee8bfb6bfda7c4ea",
+      "ownership": "generated"
+    },
+    {
+      "path": ".gitignore",
+      "hash": "c7f747efb8ab382efb12d4067eb6c911d7d602f148c1b7de07180e56e5c224b5",
+      "ownership": "managed"
+    },
+    {
+      "path": ".kernform/release-flow.toml",
+      "hash": "7cbaadb6fc0f2b0cb17e09b63f90222e41f720861aaa70780dbed59dd2876f18",
+      "ownership": "managed"
+    },
+    {
+      "path": ".kernform/toolchains.lock.toml",
+      "hash": "ab8ee5b253682d10ec0d64c650bcd1de7623d8dd1d9346b5041f3a3b4515f348",
+      "ownership": "generated"
+    },
+    {
+      "path": ".python-version",
+      "hash": "3a55324cbeddc91df012407d051dad08c88624c95a82fbdb856728729fbd14ab",
+      "ownership": "generated"
+    },
+    {
+      "path": "Cargo.lock",
+      "hash": "ef77257a39dfe2ec0ad572d770b8392023b6eb9b67aa71a54de31b5a9270938a",
+      "ownership": "generated"
+    },
+    {
+      "path": "Cargo.toml",
+      "hash": "94d3ff747082846092711cb253e6a03427d12cd8e662279cf9ef4863b485064c",
+      "ownership": "managed"
+    },
+    {
+      "path": "README.md",
+      "hash": "f7faf12992f027621a62b85d2594ec9636f4e21e9ec9f5b3ed45610bfcd76bd5",
+      "ownership": "seeded"
+    },
+    {
+      "path": "containers/Containerfile",
+      "hash": "79afcfbe7fef6a67ccf57e03717a42b3933440978e728af7095b9ced0627ab78",
+      "ownership": "managed"
+    },
+    {
+      "path": "containers/compose.dev.yaml",
+      "hash": "752fc4c10ff09ec1d8a4c70defcf5cb518537e21c3a7dae6aed3e20f79870b83",
+      "ownership": "managed"
+    },
+    {
+      "path": "containers/quadlet/example-api.container",
+      "hash": "fa078ca06ea2b51c49c7af6cce1cf81ede17b6843fa23a6d641f93cfc4e9c50a",
+      "ownership": "generated"
+    },
+    {
+      "path": "crates/example-api-core/Cargo.toml",
+      "hash": "f0c16dd62f88e6fde43d5879e68140405b1b0c5cb71b7a4da8d6e9dcb68f6046",
+      "ownership": "managed"
+    },
+    {
+      "path": "crates/example-api-core/src/lib.rs",
+      "hash": "73d242b1fa49bb03b5dff4032b3c9b7d8c512389bd0b76c57ea50c95a5f791f0",
+      "ownership": "managed"
+    },
+    {
+      "path": "crates/example-api-python/Cargo.toml",
+      "hash": "3a690e983efe825ee2bf6caec59bf9ff25f1441d40ca36be9042d4aec479b4b2",
+      "ownership": "managed"
+    },
+    {
+      "path": "crates/example-api-python/src/lib.rs",
+      "hash": "8f0d685af9bc28be4ec00bbb39947f4dcf8723243d3f67ca8cf54625451e0208",
+      "ownership": "managed"
+    },
+    {
+      "path": "docs/RELEASE.md",
+      "hash": "2d4c69b197ce4227d20383a6cfe3638150a67e6bf1768d75f81809adfcbac962",
+      "ownership": "seeded"
+    },
+    {
+      "path": "kernform.toml",
+      "hash": "622d8cdd7583058b41ec817edcba72effaeaa2929ea73ebee9569a4158498f48",
+      "ownership": "managed"
+    },
+    {
+      "path": "pyproject.toml",
+      "hash": "c5b9568d0b6c74d5cfb6ccba3febda08cef5a0d1dd3eb99387a6ec43f3ff4338",
+      "ownership": "managed"
+    },
+    {
+      "path": "python/example_api/__init__.py",
+      "hash": "0e4143d46f7db9708b420baa4917add4404f72009eb1737727a1cfa93da5313f",
+      "ownership": "managed"
+    },
+    {
+      "path": "python/example_api/_native.pyi",
+      "hash": "77b948d886e1f78e150880846966cd8a78a216499360bc85a73a0ac79082905f",
+      "ownership": "generated"
+    },
+    {
+      "path": "python/example_api/api.py",
+      "hash": "1813403ad98599907b86ad9bbcfe16153a3a44d5698299bdffddb6e05b6a72cb",
+      "ownership": "managed"
+    },
+    {
+      "path": "python/example_api/app.py",
+      "hash": "b071e2c8972855ccebde9419f83a8c6f4fbfc050262383852da283a34f546dda",
+      "ownership": "managed"
+    },
+    {
+      "path": "python/example_api/models.py",
+      "hash": "6df78fd57fef3d3add8fe2b65fc8fdf501b859866a94b2c4d970aaa2e30e1f1d",
+      "ownership": "managed"
+    },
+    {
+      "path": "python/example_api/py.typed",
+      "hash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "ownership": "generated"
+    },
+    {
+      "path": "rust-toolchain.toml",
+      "hash": "fa0addad5676243d360310f981a69528b0341d295cb5012253d9721aba4d30c0",
+      "ownership": "generated"
+    },
+    {
+      "path": "shell/agent/config.nu",
+      "hash": "2a1739e465b17cddb3bd271ecdcc3aa4b81139abc6279cb0b227a898e5a634ab",
+      "ownership": "generated"
+    },
+    {
+      "path": "shell/agent/env.nu",
+      "hash": "80a9c023fd1a14fddb56f21b05980a358e8d3117239faeb1bcbeb067cd8f9d13",
+      "ownership": "generated"
+    },
+    {
+      "path": "shell/human/config.nu",
+      "hash": "8af91568ec90d8799870fc9e8e5ddd4f409e3aa5bcac46695041f1714bfb6000",
+      "ownership": "seeded"
+    },
+    {
+      "path": "shell/human/env.nu",
+      "hash": "ee11660136705c6dbe9926c9c8c1ea229a8cfc2278b2230e6eb8393aa0d4001c",
+      "ownership": "seeded"
+    },
+    {
+      "path": "shell/modules/kf/container.nu",
+      "hash": "f51fbbe209e978094b8f501be80113b1cf1c12d41d3af9535e7d4464d919fc1e",
+      "ownership": "managed"
+    },
+    {
+      "path": "shell/modules/kf/inspect.nu",
+      "hash": "c437b3795a3c9b3275bbe2faddc4b9d18337f1d8e55c1f9f4b0434b0bd0ead75",
+      "ownership": "managed"
+    },
+    {
+      "path": "shell/modules/kf/mod.nu",
+      "hash": "2bb701e56b6639e3f378a9ba96ccdc2312eafe3dcf281c833c6aa7062abe19f7",
+      "ownership": "managed"
+    },
+    {
+      "path": "shell/modules/kf/project.nu",
+      "hash": "6acd45fda86c26eb44df04169f20a6591ec751db004fa7ba0ffc9e6546aaf92a",
+      "ownership": "managed"
+    },
+    {
+      "path": "shell/modules/kf/release.nu",
+      "hash": "b88ba53b7fd75b4f0dfd5dbb75f4aeceac818343decb9c3bc8bb170a5b4b63c9",
+      "ownership": "managed"
+    },
+    {
+      "path": "shell/modules/kf/test.nu",
+      "hash": "0f937082896d0db0d945ccc3112eab78f5f5601010804be491ca98c2a0480b05",
+      "ownership": "managed"
+    },
+    {
+      "path": "tests/test_api.py",
+      "hash": "70a578989532d1f198dc47b5e1e716cdbe59cb0ece0522a5db5f23874d89bd30",
+      "ownership": "managed"
+    },
+    {
+      "path": "tests/test_app.py",
+      "hash": "6bc3c69ea3ca71f88796459242155ae22f5ea2e3df19e6339564db0d77f638af",
+      "ownership": "managed"
+    },
+    {
+      "path": "tests/tiers.toml",
+      "hash": "32a72c76f9ec07ea1c63d715000068ba7e3434c1e9fa4095c115c238edc3e03c",
+      "ownership": "generated"
+    },
+    {
+      "path": "uv.lock",
+      "hash": "2e06002a75edbabb8a708ac2944a7cbabdc61e6680b9d34c3491e6c61be1dd9c",
+      "ownership": "generated"
+    }
+  ]
+}

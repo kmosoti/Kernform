@@ -1,0 +1,12 @@
+schema = "kernform.test-tiers/v1"
+
+[fast]
+commands = ["ruff-check", "ruff-format-check", "pyright", "pytest", "cargo-fmt", "cargo-clippy", "cargo-test"]
+
+[full]
+extends = "fast"
+commands = ["wheel-clean-install", "idempotence", "profile-smoke", "container-smoke"]
+
+[deep]
+extends = "full"
+commands = ["property", "fuzz", "mutation", "miri-or-sanitizer", "stress", "audit", "performance"]

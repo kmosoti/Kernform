@@ -1,0 +1,11 @@
+schema = "kernform.profile/v1"
+id = "api"
+capabilities = [
+  "api",
+  "locks-api",
+  "ci",
+  "release",
+  "podman",
+  "nushell-human",
+  "nushell-agent",
+]

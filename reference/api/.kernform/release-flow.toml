@@ -1,0 +1,10 @@
+schema = "kernform.release-flow/v1"
+primary_branch = "main"
+develop_branch = false
+feature_prefix = "feature/"
+fix_prefix = "fix/"
+chore_prefix = "chore/"
+release_prefix = "release/"
+maintenance_prefix = "maintenance/"
+automatic_maintenance = false
+tag_prefix = "v"

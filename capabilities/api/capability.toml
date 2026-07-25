@@ -1,0 +1,32 @@
+schema = "kernform.capability/v1"
+id = "api"
+version = "1.0.0"
+requires = ["testing"]
+tests = ["api-health", "api-native", "api-exposure"]
+conformance = ["KF-BOUNDARY-001", "KF-ENV-001"]
+
+[dependencies]
+litestar = "litestar"
+msgspec = "msgspec"
+granian = "granian"
+
+[[patches]]
+destination = "pyproject.toml"
+format = "toml"
+
+[patches.data.project]
+dependencies = [
+  "granian=={{ version_granian }}",
+  "litestar=={{ version_litestar }}",
+  "msgspec=={{ version_msgspec }}",
+]
+
+[[files]]
+source = "resources/app.py"
+destination = "python/{{ module_name }}/app.py"
+ownership = "managed"
+
+[[files]]
+source = "resources/test_app.py"
+destination = "tests/test_app.py"
+ownership = "managed"

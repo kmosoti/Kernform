@@ -1,0 +1,2 @@
+$env.KERNFORM_MODE = "human"
+$env.KERNFORM_TIMEOUT_SECONDS = 300

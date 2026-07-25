@@ -1,0 +1,23 @@
+schema = "kernform.capability/v1"
+id = "cli"
+version = "1.0.0"
+requires = ["testing"]
+tests = ["cli-human", "cli-json", "cli-nuon", "cli-agent"]
+conformance = ["KF-BOUNDARY-001", "KF-TEST-001"]
+
+[[patches]]
+destination = "pyproject.toml"
+format = "toml"
+
+[patches.data.project.scripts]
+"{{ project_name }}" = "{{ module_name }}.cli:main"
+
+[[files]]
+source = "resources/cli.py"
+destination = "python/{{ module_name }}/cli.py"
+ownership = "managed"
+
+[[files]]
+source = "resources/test_cli.py"
+destination = "tests/test_cli.py"
+ownership = "managed"

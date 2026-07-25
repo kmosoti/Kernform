@@ -1,0 +1,12 @@
+schema = "kernform.profile/v1"
+id = "library"
+capabilities = [
+  "pyo3-bindings",
+  "testing",
+  "locks-base",
+  "ci",
+  "release",
+  "podman",
+  "nushell-human",
+  "nushell-agent",
+]

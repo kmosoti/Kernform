@@ -1,0 +1,21 @@
+schema = "kernform.capability/v1"
+id = "podman"
+version = "1.0.0"
+requires = ["python-package", "rust-core"]
+tests = ["container-build", "container-runtime", "container-isolation"]
+conformance = ["KF-ENV-001", "KF-VERSION-001"]
+
+[[files]]
+source = "resources/Containerfile"
+destination = "containers/Containerfile"
+ownership = "managed"
+
+[[files]]
+source = "resources/compose.dev.yaml"
+destination = "containers/compose.dev.yaml"
+ownership = "managed"
+
+[[files]]
+source = "resources/runtime.container"
+destination = "containers/quadlet/{{ project_name }}.container"
+ownership = "generated"

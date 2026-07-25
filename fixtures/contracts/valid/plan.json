@@ -1,0 +1,35 @@
+{
+  "schema": "kernform.plan/v1",
+  "plan_id": "0000000000000000000000000000000000000000000000000000000000000000",
+  "generator_version": "0.1.0",
+  "intent": {
+    "name": "example-project",
+    "profile": "api",
+    "capabilities": ["api", "python-package", "web-server"],
+    "git": true
+  },
+  "catalog": {
+    "id": "stable-2026-07-17",
+    "hash": "1111111111111111111111111111111111111111111111111111111111111111",
+    "resolved_at": "2026-07-17T12:00:00Z",
+    "source": "https://www.python.org/downloads/",
+    "versions": {"python": "3.14.6", "rust": "1.96.0"},
+    "images": {"python": "sha256:2222222222222222222222222222222222222222222222222222222222222222"}
+  },
+  "operations": [
+    {
+      "id": "write:README.md",
+      "kind": "write_file",
+      "path": "README.md",
+      "content": "# Example project\n",
+      "ownership": "seeded",
+      "expected_hash": null
+    },
+    {
+      "id": "git:init",
+      "kind": "init_git_repository",
+      "initial_branch": "main"
+    }
+  ],
+  "diagnostics": []
+}

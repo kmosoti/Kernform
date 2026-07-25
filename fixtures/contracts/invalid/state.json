@@ -1,0 +1,10 @@
+{
+  "schema": "kernform.state/v1",
+  "generator_version": "0.1.0",
+  "project_root": "example-project",
+  "manifest_hash": "not-a-hash",
+  "toolchains": {"catalog_id": "floating", "catalog_hash": "bad"},
+  "files": [
+    {"path": ".git/config", "hash": "bad", "ownership": "owned"}
+  ]
+}

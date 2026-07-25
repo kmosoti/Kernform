@@ -1,0 +1,11 @@
+schema = "kernform.capability/v1"
+id = "ci"
+version = "1.0.0"
+requires = ["testing"]
+tests = ["ci-contract"]
+conformance = ["KF-TEST-001", "KF-VERSION-001"]
+
+[[files]]
+source = "resources/ci.yml"
+destination = ".github/workflows/ci.yml"
+ownership = "generated"

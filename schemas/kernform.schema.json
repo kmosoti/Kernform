@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kernform:schema:kernform:v1",
+  "title": "Kernform manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "generator_version", "project", "git", "versions", "web", "containers"],
+  "properties": {
+    "schema": {"const": "kernform/v1"},
+    "generator_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "profile", "capabilities"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9-]{0,62}$"},
+        "profile": {"enum": ["library", "cli", "api"]},
+        "capabilities": {
+          "type": "array",
+          "items": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+          "uniqueItems": true
+        }
+      }
+    },
+    "git": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "initial_branch", "initial_commit", "create_remote"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "initial_branch": {"type": "string", "minLength": 1},
+        "initial_commit": {"type": "boolean"},
+        "create_remote": {"const": false}
+      }
+    },
+    "versions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy", "allow_prerelease", "offline_catalog"],
+      "properties": {
+        "policy": {"const": "newest-stable-exact"},
+        "allow_prerelease": {"const": false},
+        "offline_catalog": {"type": "string", "minLength": 1}
+      }
+    },
+    "web": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["javascript"],
+      "properties": {"javascript": {"const": "none"}}
+    },
+    "containers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["engine", "rootless"],
+      "properties": {
+        "engine": {"const": "podman"},
+        "rootless": {"const": true}
+      }
+    }
+  }
+}

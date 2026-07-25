@@ -1,52 +1,57 @@
+[build-system]
+requires = ["maturin==1.14.1"]
+build-backend = "maturin"
+
 [project]
-name = "tea-style-kb"
+name = "kernform"
 version = "0.1.0"
-description = "Markdown-native lifecycle tooling for the TEA doctrine graph."
+description = "Deterministic project lifecycle initializer for Python and Rust projects."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = [
-  "markdown-it-py>=3.0.0",
-  "networkx>=3.0",
-  "pydantic>=2",
-  "python-frontmatter>=1.0.0",
-  "pyvis>=0.3.2",
-  "rich>=13.0.0",
-  "typer>=0.12.0",
-]
+license = "MIT"
+authors = [{ name = "Kennedy Mosoti" }]
+dependencies = []
 
 [project.scripts]
-tea-kb = "tea_kb.cli.app:app"
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/tea_kb"]
+kernform = "kernform.cli:main"
 
 [dependency-groups]
 dev = [
-  "pyright>=1.1.0",
-  "pytest>=8.0.0",
-  "ruff>=0.8.0",
+  "jsonschema==4.25.1",
+  "maturin==1.14.1",
+  "pyright==1.1.411",
+  "pytest==9.0.3",
+  "pytest-cov==7.0.0",
+  "ruff==0.15.16",
 ]
+
+[tool.maturin]
+manifest-path = "crates/kernform-python/Cargo.toml"
+module-name = "kernform._native"
+python-source = "python"
+features = ["pyo3/extension-module"]
+include = [{ path = "capabilities/**/*", format = "sdist" }]
 
 [tool.ruff]
 line-length = 100
-target-version = "py311"
+target-version = "py314"
+src = ["python", "tests"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B"]
-
-[tool.ruff.lint.per-file-ignores]
-"src/tea_kb/cli/app.py" = ["B008"]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
 
 [tool.pyright]
-pythonVersion = "3.11"
-typeCheckingMode = "basic"
-reportMissingTypeStubs = false
-include = ["src", "tests"]
+pythonVersion = "3.14"
+typeCheckingMode = "strict"
+include = ["python", "tests"]
+exclude = ["reference"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+addopts = "--strict-markers"
+markers = [
+  "fast: ordinary deterministic development checks",
+  "full: installability, generation, integration, and container checks",
+  "deep: long-running property, stress, audit, or mutation checks",
+  "container: rootless Podman profile-matrix checks",
+]

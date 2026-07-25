@@ -1,0 +1,26 @@
+schema = "kernform/v1"
+generator_version = "0.1.0"
+
+[project]
+name = "{{ project_name }}"
+profile = "{{ profile }}"
+capabilities = [{{ capability_list }}]
+
+[git]
+enabled = {{ git_enabled }}
+initial_branch = "main"
+initial_commit = false
+create_remote = false
+
+[versions]
+policy = "newest-stable-exact"
+allow_prerelease = false
+catalog_id = "{{ catalog_id }}"
+catalog_hash = "{{ catalog_hash }}"
+
+[web]
+javascript = "none"
+
+[containers]
+engine = "podman"
+rootless = true

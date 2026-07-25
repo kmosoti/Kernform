@@ -1,0 +1,13 @@
+{
+  "schema": "kernform.fixture-scenarios/v1",
+  "scenarios": [
+    {"id": "empty", "state": "absent", "expected": "initialize"},
+    {"id": "python-only", "state": "existing-unmanaged", "expected": "adopt-with-seeded-conflicts"},
+    {"id": "existing-git", "state": "existing-git-main", "expected": "preserve-git"},
+    {"id": "existing-pyo3", "state": "existing-rust-python", "expected": "semantic-adoption"},
+    {"id": "conflicting", "state": "user-path-conflict", "expected": "KF-OWNERSHIP-001"},
+    {"id": "modified-ownership", "state": "modified-seeded-file", "expected": "preserve-user-edit"},
+    {"id": "missing-identity", "state": "unborn-git-without-identity", "expected": "KF-GIT-001"},
+    {"id": "offline", "state": "valid-offline-catalog", "expected": "exact-resolution"}
+  ]
+}

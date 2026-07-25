@@ -1,1 +1,0 @@
-"""Diagnostics and report rendering."""

@@ -1,0 +1,41 @@
+[build-system]
+build-backend = "maturin"
+requires = ["maturin==1.14.1"]
+
+[dependency-groups]
+dev = [
+    "pyright==1.1.411",
+    "pytest==9.0.3",
+    "ruff==0.15.16",
+]
+
+[project]
+dependencies = [
+    "granian==2.7.9",
+    "litestar==2.24.0",
+    "msgspec==0.21.1",
+]
+name = "example-api"
+requires-python = ">=3.14"
+version = "0.1.0"
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+manifest-path = "crates/example-api-python/Cargo.toml"
+module-name = "example_api._native"
+python-source = "python"
+
+[tool.pyright]
+include = [
+    "python",
+    "tests",
+]
+pythonVersion = "3.14"
+typeCheckingMode = "strict"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"

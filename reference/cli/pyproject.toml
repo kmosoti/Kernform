@@ -1,0 +1,40 @@
+[build-system]
+build-backend = "maturin"
+requires = ["maturin==1.14.1"]
+
+[dependency-groups]
+dev = [
+    "pyright==1.1.411",
+    "pytest==9.0.3",
+    "ruff==0.15.16",
+]
+
+[project]
+dependencies = []
+name = "example-cli"
+requires-python = ">=3.14"
+version = "0.1.0"
+
+[project.scripts]
+example-cli = "example_cli.cli:main"
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+manifest-path = "crates/example-cli-python/Cargo.toml"
+module-name = "example_cli._native"
+python-source = "python"
+
+[tool.pyright]
+include = [
+    "python",
+    "tests",
+]
+pythonVersion = "3.14"
+typeCheckingMode = "strict"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"

@@ -1,0 +1,16 @@
+schema = "kernform.capability/v1"
+id = "testing"
+version = "1.0.0"
+requires = ["pyo3-bindings"]
+tests = ["fast", "full", "deep"]
+conformance = ["KF-TEST-001"]
+
+[[files]]
+source = "resources/test_api.py"
+destination = "tests/test_api.py"
+ownership = "managed"
+
+[[files]]
+source = "resources/tiers.toml"
+destination = "tests/tiers.toml"
+ownership = "generated"

@@ -1,0 +1,36 @@
+FROM docker.io/library/python:{{ python_version }}-slim@{{ python_image_digest }} AS python-base
+FROM docker.io/library/rust:{{ rust_version }}-slim@{{ rust_image_digest }} AS builder
+
+COPY --from=python-base /usr/local /usr/local
+WORKDIR /workspace
+COPY . .
+RUN python -m pip install --no-cache-dir maturin=={{ maturin_version }} \
+        pytest=={{ pytest_version }} uv=={{ uv_version }} \
+    && python -m maturin build --release --locked --out /dist
+
+FROM builder AS ci
+RUN cargo test --workspace --locked \
+    && python -m pip install --no-cache-dir /dist/*.whl \
+    && python -m pytest
+
+FROM builder AS dev-human
+RUN python -m pip install --no-cache-dir /dist/*.whl
+USER 1000:1000
+CMD ["/bin/sh"]
+
+FROM builder AS dev-agent
+ENV NO_COLOR=1 PAGER=cat TERM=dumb
+RUN python -m pip install --no-cache-dir /dist/*.whl
+USER 1000:1000
+ENTRYPOINT [{{ agent_entrypoint }}]
+
+FROM python-base AS runtime
+RUN groupadd --gid 65532 app \
+    && useradd --uid 65532 --gid 65532 --no-create-home --home-dir /nonexistent app
+COPY --from=builder /dist /dist
+RUN python -m pip install --no-cache-dir /dist/*.whl && rm -rf /dist
+USER 65532:65532
+WORKDIR /app
+EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=3s CMD ["python", "-c", "import {{ module_name }}; assert {{ module_name }}.native_version()"]
+ENTRYPOINT [{{ runtime_entrypoint }}]
