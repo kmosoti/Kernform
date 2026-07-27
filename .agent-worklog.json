@@ -330,6 +330,63 @@
         "Optional deep fuzzing, Miri, mutation, audit, and security-tool tiers remain outside the maintained production-alpha publication gate."
       ],
       "next_step": "Stage only the audited alpha implementation, commit it on main, recheck origin/main ancestry, and push normally."
+    },
+    {
+      "timestamp": "2026-07-27T01:40:51Z",
+      "objective": "Correct the mistaken release-workflow removal and retire only the legacy tea-style GitHub Pages deployment artifacts.",
+      "files_touched": [
+        ".agent-worklog.json",
+        ".github/workflows/release.yml",
+        "docs/development/release-flow.md",
+        "tests/ci_release/test_ci_release.py"
+      ],
+      "tests_run": [
+        [
+          "uv",
+          "run",
+          "kernform",
+          "--agent",
+          "check"
+        ],
+        [
+          "uv",
+          "run",
+          "pytest",
+          "-q",
+          "tests/ci_release/test_ci_release.py"
+        ],
+        [
+          "uv",
+          "run",
+          "kernform",
+          "--agent",
+          "test",
+          "fast"
+        ],
+        [
+          "gh",
+          "api",
+          "repos/kmosoti/Kernform/actions/runs/27089523600"
+        ],
+        [
+          "gh",
+          "api",
+          "repos/kmosoti/Kernform/deployments/4963826435"
+        ],
+        [
+          "gh",
+          "api",
+          "repos/kmosoti/Kernform/environments/github-pages"
+        ]
+      ],
+      "results": {
+        "status": "passed",
+        "summary": "Restored the pinned release-candidate workflow, its publication documentation, and its build-once promotion contract tests. Source conformance returned conformant=true. The focused suite passed 4 tests; the maintained fast tier passed all Rust format, Clippy, unit/property tests, docs, Ruff, formatting, Pyright, and 85 selected Python tests. The legacy tea-style Pages workflow was already deleted; its sole failed run 27089523600, deployment 4963826435, and github-pages environment were retired and exact API readback returned 404 or empty collections."
+      },
+      "unresolved_risks": [
+        "Git history intentionally retains the old pages.yml source and the corrective commit history; no active Pages workflow, run, deployment, environment, or site remains."
+      ],
+      "next_step": "Commit the exact correction on main, verify origin/main ancestry, push normally, and confirm local and remote heads match."
     }
   ]
 }

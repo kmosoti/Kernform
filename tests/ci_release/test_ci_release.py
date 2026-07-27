@@ -16,14 +16,28 @@ ACTION_PIN = re.compile(r"uses:\s+[^@\s]+@([0-9a-f]{40})(?:\s+#.*)?$")
 
 
 def test_workflows_pin_actions_and_do_not_use_privileged_pull_requests() -> None:
-    paths = [WORKFLOWS / name for name in ("ci.yml", "nightly.yml")]
+    paths = [WORKFLOWS / name for name in ("ci.yml", "nightly.yml", "release.yml")]
     for path in paths:
         content = path.read_text(encoding="utf-8")
         assert "pull_request_target" not in content
         uses_lines = [line.strip() for line in content.splitlines() if "uses:" in line]
         assert uses_lines
         assert all(ACTION_PIN.search(line) for line in uses_lines)
-        assert "persist-credentials: false" in content
+        assert "persist-credentials: false" in content or path.name == "release.yml"
+
+
+def test_release_workflow_promotes_the_build_once_artifact() -> None:
+    content = (WORKFLOWS / "release.yml").read_text(encoding="utf-8")
+    build, publish = content.split("  publish-existing-tag:\n", 1)
+    assert "uv run kernform --agent test full" in build
+    assert "kernform.release_artifacts export-oci" in build
+    assert "kernform.release_artifacts build" in build
+    assert "actions/upload-artifact@" in build
+    assert "needs: build-once" in publish
+    assert "actions/download-artifact@" in publish
+    assert "--verify-tag" in publish
+    assert "uv build" not in publish
+    assert "maturin build" not in publish
 
 
 def test_ci_is_read_only_and_fork_safe() -> None:

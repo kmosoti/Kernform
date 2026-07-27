@@ -19,10 +19,13 @@ permanent `develop` branch.
 Signing defaults to disabled. When repository Git policy requires signing, resolved identity,
 signing key, and signing capability must exist before mutation.
 
-## Publication boundary
+## GitHub workflow
 
-Kernform does not automate deployment, tag creation, or publication through GitHub Actions.
-`release build` creates the immutable local bundle, and `release finalize` freezes its verified
-local state without publishing it. Any later publication is a separate operator-controlled action
-outside Kernform's repository workflows and must use that exact finalized bundle without
-rebuilding it.
+`.github/workflows/release.yml` accepts an exact version and full source commit. Its build-once job
+runs on the controlled `kernform-release` Linux x86_64 runner label with rootless Podman. The gated
+publication job downloads that exact candidate and uses `gh release create --verify-tag`; it cannot
+rebuild. Publication therefore also requires a separately created matching tag and the protected
+`release` environment.
+
+Actions are pinned by full commit ID. Candidate attestation uses short-lived GitHub OIDC; no
+long-lived release credential is declared.
