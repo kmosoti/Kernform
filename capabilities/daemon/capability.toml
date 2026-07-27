@@ -1,0 +1,23 @@
+schema = "kernform.capability/v1"
+id = "daemon"
+version = "1.0.0"
+requires = ["testing"]
+tests = ["daemon-lifecycle", "daemon-signal-shutdown", "daemon-status"]
+conformance = ["KF-BOUNDARY-001", "KF-TEST-001"]
+
+[[patches]]
+destination = "pyproject.toml"
+format = "toml"
+
+[patches.data.project.scripts]
+"{{ project_name }}-daemon" = "{{ module_name }}.daemon:main"
+
+[[files]]
+source = "resources/daemon.py"
+destination = "python/{{ module_name }}/daemon.py"
+ownership = "managed"
+
+[[files]]
+source = "resources/test_daemon.py"
+destination = "tests/test_daemon.py"
+ownership = "managed"

@@ -1,6 +1,6 @@
-# Deferred after 0.1.0
+# Deferred after 0.2.0
 
-The following work is intentionally absent from the frozen 0.1.0 contract:
+The following work is intentionally absent from the 0.2.0 alpha contract:
 
 - remote repository creation, pushes, merge automation, branch protection, or forge administration
 - plugin loading, arbitrary capability scripts, generalized template packs, or LLM-driven planning

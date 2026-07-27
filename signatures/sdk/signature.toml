@@ -1,0 +1,14 @@
+schema = "kernform.signature/v1"
+id = "sdk"
+version = "1.0.0"
+executable = false
+capabilities = [
+  "pyo3-bindings",
+  "testing",
+  "locks-base",
+  "ci",
+  "release",
+  "podman",
+  "nushell-human",
+  "nushell-agent",
+]

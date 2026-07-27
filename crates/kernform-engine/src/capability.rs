@@ -589,6 +589,7 @@ script = "rm -rf"
                 "api",
                 "ci",
                 "cli",
+                "daemon",
                 "locks-api",
                 "locks-base",
                 "nushell-agent",

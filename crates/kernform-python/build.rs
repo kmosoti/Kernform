@@ -56,6 +56,40 @@ fn main() {
     let output =
         PathBuf::from(std::env::var("OUT_DIR").expect("out dir")).join("builtin_capabilities.rs");
     fs::write(output, generated).expect("write embedded capability catalog");
+
+    let signatures = manifest_dir.join("../../signatures");
+    println!("cargo:rerun-if-changed={}", signatures.display());
+    let mut directories = fs::read_dir(&signatures)
+        .expect("read signature catalog")
+        .collect::<Result<Vec<_>, _>>()
+        .expect("read signature entries");
+    directories.sort_by_key(std::fs::DirEntry::file_name);
+    let mut generated = String::from(
+        "use kernform_engine::EmbeddedSignature;\n\npub static BUILTIN_SIGNATURES: &[EmbeddedSignature] = &[\n",
+    );
+    for directory in directories {
+        if !directory.file_type().expect("signature type").is_dir() {
+            continue;
+        }
+        let manifest = directory.path().join("signature.toml");
+        if !manifest.is_file() {
+            continue;
+        }
+        let id = directory.file_name().to_string_lossy().into_owned();
+        generated.push_str("    EmbeddedSignature {\n");
+        writeln!(generated, "        id: {id:?},").expect("write generated source");
+        writeln!(
+            generated,
+            "        manifest: include_str!({:?}),",
+            manifest.display().to_string()
+        )
+        .expect("write generated source");
+        generated.push_str("    },\n");
+    }
+    generated.push_str("];\n");
+    let output =
+        PathBuf::from(std::env::var("OUT_DIR").expect("out dir")).join("builtin_signatures.rs");
+    fs::write(output, generated).expect("write embedded signature catalog");
 }
 
 fn collect_files(root: &Path) -> Vec<PathBuf> {

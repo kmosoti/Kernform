@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import cast
 
 from kernform.catalog import load_builtin_catalog
-from kernform.errors import KernformPreconditionError
 from kernform.generation import plan_adoption
-from kernform.models import GitOptions, PlanResult, Profile, VersionCatalog, to_jsonable
+from kernform.models import GitOptions, PlanResult, Signature, VersionCatalog, to_jsonable
+from kernform.project_form import read_project_form
 
 
 def inspect_version_state(root: Path) -> dict[str, object]:
@@ -29,50 +29,28 @@ def inspect_version_state(root: Path) -> dict[str, object]:
 def plan_version_update(root: Path) -> PlanResult:
     """Produce the normal immutable adoption plan against the built-in catalog."""
     canonical = root.resolve(strict=True)
-    name, profile, capabilities, git = project_identity(canonical)
+    name, signatures, default_signature, capabilities, git = project_identity(canonical)
     return plan_adoption(
         canonical,
         name=name,
-        profile=profile,
+        signatures=signatures,
+        default_signature=default_signature,
         capabilities=capabilities,
         git=git,
     )
 
 
-def project_identity(root: Path) -> tuple[str, Profile, tuple[str, ...], GitOptions]:
+def project_identity(
+    root: Path,
+) -> tuple[str, tuple[Signature, ...], Signature | None, tuple[str, ...], GitOptions]:
     """Read the closed project identity needed for regeneration."""
-    path = root / "kernform.toml"
-    if not path.is_file():
-        raise KernformPreconditionError(f"project manifest is missing: {path}")
-    with path.open("rb") as source:
-        document = cast(dict[str, object], tomllib.load(source))
-    project_value = document.get("project")
-    git_value = document.get("git")
-    if not isinstance(project_value, dict) or not isinstance(git_value, dict):
-        raise ValueError("project manifest identity tables are invalid")
-    project = cast(dict[str, object], project_value)
-    git_table = cast(dict[str, object], git_value)
-    name = project.get("name")
-    profile = project.get("profile")
-    capabilities_value = project.get("capabilities")
-    git_enabled = git_table.get("enabled")
-    branch = git_table.get("initial_branch")
-    capabilities_items = (
-        cast(list[object], capabilities_value) if isinstance(capabilities_value, list) else []
-    )
-    if (
-        not isinstance(name, str)
-        or not isinstance(profile, str)
-        or not all(isinstance(item, str) for item in capabilities_items)
-        or not isinstance(git_enabled, bool)
-        or not isinstance(branch, str)
-    ):
-        raise ValueError("project manifest identity values are invalid")
+    form = read_project_form(root)
     return (
-        name,
-        Profile(profile),
-        tuple(cast(list[str], capabilities_items)),
-        GitOptions(enabled=git_enabled, initial_branch=branch),
+        form.name,
+        form.signatures,
+        form.default_signature,
+        form.capabilities,
+        form.git,
     )
 
 

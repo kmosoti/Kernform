@@ -8,6 +8,7 @@ pub mod error;
 pub mod model;
 pub mod planner;
 pub mod release;
+pub mod signature;
 
 pub use capability::{CapabilitySpec, resolve_capabilities};
 pub use catalog::{canonical_json, finalize_catalog, select_newest_stable, validate_catalog};
@@ -17,7 +18,10 @@ pub use conformance::{
 };
 pub use error::CoreError;
 pub use model::*;
-pub use planner::{file_hash, plan_initialization};
+pub use planner::{
+    file_hash, plan_initialization, validate_initial_branch, validate_plan_identity,
+};
+pub use signature::{SignatureResolution, SignatureSpec, resolve_signatures};
 
 /// Current generator version.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

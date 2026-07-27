@@ -1,0 +1,16 @@
+[package]
+name = "example-interactive-web-python"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[lib]
+name = "_native"
+crate-type = ["cdylib"]
+
+[dependencies]
+example_interactive_web-core = { package = "example-interactive-web-core", path = "../example-interactive-web-core" }
+pyo3.workspace = true
+
+[lints]
+workspace = true

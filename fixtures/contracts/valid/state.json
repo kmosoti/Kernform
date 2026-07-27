@@ -1,7 +1,10 @@
 {
-  "schema": "kernform.state/v1",
-  "generator_version": "0.1.0",
+  "schema": "kernform.state/v2",
+  "generator_version": "0.2.0",
   "project_root": "example-project",
+  "requested_signatures": ["interactive-web"],
+  "resolved_signatures": ["sdk", "api", "interactive-web"],
+  "default_signature": "interactive-web",
   "manifest_hash": "0000000000000000000000000000000000000000000000000000000000000000",
   "toolchains": {
     "catalog_id": "stable-2026-07-17",

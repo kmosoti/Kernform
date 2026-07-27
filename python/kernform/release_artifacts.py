@@ -108,7 +108,7 @@ def build_release_bundle(
         ),
         "creationInfo": {
             "created": created,
-            "creators": ["Tool: kernform-0.1.0"],
+            "creators": [f"Tool: kernform-{version}"],
         },
         "packages": [
             {

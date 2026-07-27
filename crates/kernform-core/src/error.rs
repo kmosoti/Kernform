@@ -7,6 +7,14 @@ use thiserror::Error;
 pub enum CoreError {
     #[error("invalid project intent: {message}")]
     InvalidIntent { message: String },
+    #[error("unknown signature: {id}")]
+    UnknownSignature { id: String },
+    #[error("signature cycle: {path}")]
+    SignatureCycle { path: String },
+    #[error("runtime signature {id} is not available in the resolved project form")]
+    InvalidRuntimeSignature { id: String },
+    #[error("multiple executable signatures require runtime.default_signature: {candidates}")]
+    AmbiguousRuntime { candidates: String },
     #[error("unknown capability: {id}")]
     UnknownCapability { id: String },
     #[error("capability cycle: {path}")]

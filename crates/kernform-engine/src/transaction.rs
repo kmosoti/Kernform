@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 
 use kernform_core::{
     DocumentFormat, ManagedState, Operation, Ownership, Plan, Severity, StateFile, ToolchainState,
+    validate_initial_branch, validate_plan_identity,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
@@ -160,7 +161,7 @@ impl<E: ProcessExecutor> TransactionExecutor<E> {
         destination: &Path,
         plan: &Plan,
     ) -> Result<ApplyResult, EngineError> {
-        validate_plan_id(&plan.plan_id)?;
+        validate_plan_contract(plan)?;
         if destination.exists() {
             return Err(EngineError::Precondition {
                 path: destination.to_path_buf(),
@@ -336,12 +337,24 @@ pub fn recover_transaction(root: &Path, plan_id: &str) -> Result<TransactionPhas
 }
 
 fn validate_plan(root: &Path, plan: &Plan) -> Result<(), EngineError> {
-    if !root.is_dir() || plan.schema != "kernform.plan/v1" {
+    if !root.is_dir() {
         return Err(EngineError::Policy {
-            message: "apply requires an existing directory and kernform.plan/v1".to_owned(),
+            message: "apply requires an existing directory and kernform.plan/v2".to_owned(),
+        });
+    }
+    validate_plan_contract(plan)
+}
+
+fn validate_plan_contract(plan: &Plan) -> Result<(), EngineError> {
+    if plan.schema != "kernform.plan/v2" {
+        return Err(EngineError::Policy {
+            message: "apply requires kernform.plan/v2".to_owned(),
         });
     }
     validate_plan_id(&plan.plan_id)?;
+    validate_plan_identity(plan).map_err(|error| EngineError::Policy {
+        message: error.to_string(),
+    })?;
     if plan
         .diagnostics
         .iter()
@@ -360,6 +373,13 @@ fn validate_plan(root: &Path, plan: &Plan) -> Result<(), EngineError> {
         return Err(EngineError::Policy {
             message: "plan contains duplicate operation identifiers".to_owned(),
         });
+    }
+    for operation in &plan.operations {
+        if let Operation::InitGitRepository { initial_branch, .. } = operation {
+            validate_initial_branch(initial_branch).map_err(|error| EngineError::Policy {
+                message: error.to_string(),
+            })?;
+        }
     }
     Ok(())
 }
@@ -625,9 +645,12 @@ fn build_state(root: &Path, plan: &Plan) -> Result<ManagedState, EngineError> {
         hash_bytes(b"")
     };
     Ok(ManagedState {
-        schema: "kernform.state/v1".to_owned(),
+        schema: "kernform.state/v2".to_owned(),
         generator_version: plan.generator_version.clone(),
         project_root: plan.intent.name.clone(),
+        requested_signatures: plan.intent.requested_signatures.clone(),
+        resolved_signatures: plan.intent.resolved_signatures.clone(),
+        default_signature: plan.intent.default_signature,
         manifest_hash,
         toolchains: ToolchainState {
             catalog_id: plan.catalog.id.clone(),
@@ -750,7 +773,7 @@ mod tests {
     use std::collections::{BTreeMap, BTreeSet};
 
     use kernform_core::{
-        GitIntent, Profile, ProjectIntent, RenderedFile, RepositorySnapshot, VersionCatalog,
+        GitIntent, ProjectIntent, RenderedFile, RepositorySnapshot, Signature, VersionCatalog,
         finalize_catalog, plan_initialization,
     };
     use tempfile::tempdir;
@@ -774,7 +797,9 @@ mod tests {
         plan_initialization(
             ProjectIntent {
                 name: "example".to_owned(),
-                profile: Profile::Library,
+                requested_signatures: BTreeSet::from([Signature::Sdk]),
+                resolved_signatures: BTreeSet::from([Signature::Sdk]),
+                default_signature: None,
                 capabilities: BTreeSet::new(),
                 git: GitIntent {
                     enabled: git,
@@ -852,6 +877,27 @@ mod tests {
             fs::read(directory.path().join("src/value.txt")).unwrap(),
             b"user\n"
         );
+    }
+
+    #[test]
+    fn tampered_plan_identity_mutates_nothing() {
+        let directory = tempdir().unwrap();
+        let mut plan = plan(false);
+        let Operation::WriteFile { content, .. } = plan
+            .operations
+            .iter_mut()
+            .find(|operation| matches!(operation, Operation::WriteFile { .. }))
+            .unwrap()
+        else {
+            panic!("test plan must contain a write");
+        };
+        *content = "tampered\n".to_owned();
+        let error = TransactionExecutor::new(SystemProcessExecutor)
+            .apply_existing(directory.path(), &plan)
+            .unwrap_err();
+        assert!(matches!(error, EngineError::Policy { .. }));
+        assert!(!directory.path().join(".kernform").exists());
+        assert!(!directory.path().join("src/value.txt").exists());
     }
 
     #[test]

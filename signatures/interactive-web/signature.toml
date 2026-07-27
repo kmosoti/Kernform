@@ -1,0 +1,6 @@
+schema = "kernform.signature/v1"
+id = "interactive-web"
+version = "1.0.0"
+implies = ["api"]
+capabilities = ["web-server"]
+executable = true

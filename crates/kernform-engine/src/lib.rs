@@ -8,6 +8,7 @@ pub mod git;
 pub mod process;
 pub mod provider;
 pub mod release;
+pub mod signature;
 pub mod snapshot;
 pub mod transaction;
 pub mod versioning;
@@ -23,6 +24,10 @@ pub use git::{GitClient, GitSnapshot};
 pub use process::{CommandSpec, ProcessExecutor, ProcessResult, SystemProcessExecutor};
 pub use provider::{OfflineReleaseProvider, ReleaseProvider};
 pub use release::{GitLifecycle, ReleaseManager};
+pub use signature::{
+    EmbeddedSignature, LoadedSignature, SignatureManifest, load_signatures,
+    resolve_embedded_signatures,
+};
 pub use snapshot::{inspect_repository, inspect_repository_with_git};
 pub use transaction::{ApplyResult, TransactionExecutor, TransactionPhase, recover_transaction};
 pub use versioning::{

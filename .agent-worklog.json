@@ -1,0 +1,335 @@
+{
+  "schema_version": "agent-worklog/v1",
+  "entries": [
+    {
+      "timestamp": "2026-07-26T17:46:04Z",
+      "objective": "Ground the Kernform 0.2 signature-contract migration against a clean 0.1.0 baseline.",
+      "files_touched": [
+        ".agent-worklog.json"
+      ],
+      "tests_run": [
+        [
+          "uv",
+          "run",
+          "kernform",
+          "check"
+        ],
+        [
+          "uv",
+          "run",
+          "kernform",
+          "test",
+          "fast"
+        ]
+      ],
+      "results": {
+        "status": "passed",
+        "summary": "Source conformance passed; Rust format, Clippy, Rust tests/docs, Ruff, Pyright, and 57 fast Python tests passed."
+      },
+      "unresolved_risks": [
+        "The v2 signature contract is intentionally breaking and must retain explicit read-only v1 migration support."
+      ],
+      "next_step": "Implement and validate the v2 schemas, signature resolver, and coarse native bridge."
+    },
+    {
+      "timestamp": "2026-07-26T18:16:48Z",
+      "objective": "Implement the Kernform 0.2 project-form compiler and explicit v1 lifecycle migration.",
+      "files_touched": [
+        "Cargo.toml",
+        "capabilities/daemon/",
+        "crates/kernform-core/src/signature.rs",
+        "crates/kernform-engine/src/signature.rs",
+        "crates/kernform-python/src/lib.rs",
+        "python/kernform/generation.py",
+        "python/kernform/project_form.py",
+        "python/kernform/migration.py",
+        "python/kernform/cli.py",
+        "schemas/",
+        "signatures/",
+        "reference/",
+        "tests/"
+      ],
+      "tests_run": [
+        [
+          "cargo",
+          "test",
+          "--workspace",
+          "--all-features",
+          "--locked"
+        ],
+        [
+          "uv",
+          "run",
+          "pytest",
+          "tests/python/test_lifecycle.py",
+          "-q"
+        ],
+        [
+          "uv",
+          "run",
+          "pytest",
+          "tests/reference/test_reference_projects.py",
+          "-q"
+        ],
+        [
+          "uv",
+          "run",
+          "kernform",
+          "--agent",
+          "test",
+          "fast"
+        ]
+      ],
+      "results": {
+        "status": "passed",
+        "summary": "The v2 signature resolver, five declarative signatures, combined runtime selection, daemon scaffold, compile/init/adopt/check flows, explicit v1 migration, regenerated references, Rust gates, Ruff, Pyright, and 61 fast Python tests passed."
+      },
+      "unresolved_risks": [
+        "The maintained full install/build/reference gate remains to be run after both repository slices are complete.",
+        "Public documentation still needs its profile-to-signature update."
+      ],
+      "next_step": "Implement BlackCell command-provider ports, then its bounded runtime and projections."
+    },
+    {
+      "timestamp": "2026-07-26T19:11:09Z",
+      "objective": "Finalize and verify the production-ready Kernform 0.2 alpha contract.",
+      "files_touched": [
+        "README.md",
+        "docs/",
+        "python/kernform/release_artifacts.py",
+        "python/kernform/scaffold.py",
+        "python/kernform/testing.py",
+        "crates/kernform-core/src/conformance.rs",
+        ".agent-worklog.json"
+      ],
+      "tests_run": [
+        [
+          "uv",
+          "run",
+          "kernform",
+          "check"
+        ],
+        [
+          "uv",
+          "run",
+          "kernform",
+          "test",
+          "fast"
+        ],
+        [
+          "uv",
+          "run",
+          "kernform",
+          "test",
+          "full"
+        ],
+        [
+          "git",
+          "diff",
+          "--check"
+        ]
+      ],
+      "results": {
+        "status": "passed",
+        "summary": "Source conformance returned conformant=true. The fast tier passed Rust format, Clippy, tests/docs, Ruff, Pyright, and 61 Python tests. The full tier passed 72 Python tests with 6 declared skips, five rootless Podman signature builds, source/wheel builds, and clean-wheel verification for 0.2.0."
+      },
+      "unresolved_risks": [
+        "The v1 project-form contract is intentionally accepted only by the explicit read-only migration planner; ordinary v2 operations fail closed on legacy state."
+      ],
+      "next_step": "Consume the frozen v2 command and project-form contracts from BlackCell."
+    },
+    {
+      "timestamp": "2026-07-26T21:59:37Z",
+      "objective": "Close Kernform alpha trust-boundary gaps in project-form migration, Git intent, and immutable plan application.",
+      "files_touched": [
+        ".agent-worklog.json",
+        "crates/kernform-core/src/lib.rs",
+        "crates/kernform-core/src/planner.rs",
+        "crates/kernform-engine/src/transaction.rs",
+        "crates/kernform-python/src/lib.rs",
+        "python/kernform/_native.pyi",
+        "python/kernform/migration.py",
+        "python/kernform/project_form.py",
+        "schemas/kernform.schema.json",
+        "schemas/legacy/kernform-v1.schema.json",
+        "schemas/plan.schema.json",
+        "tests/python/test_lifecycle.py"
+      ],
+      "tests_run": [
+        [
+          "cargo",
+          "test",
+          "-p",
+          "kernform-core",
+          "planner::tests",
+          "--locked"
+        ],
+        [
+          "cargo",
+          "test",
+          "-p",
+          "kernform-engine",
+          "transaction::tests",
+          "--locked"
+        ],
+        [
+          "uv",
+          "run",
+          "pytest",
+          "-q",
+          "tests/python/test_lifecycle.py"
+        ],
+        [
+          "uv",
+          "run",
+          "kernform",
+          "check"
+        ],
+        [
+          "uv",
+          "run",
+          "kernform",
+          "--agent",
+          "test",
+          "fast"
+        ],
+        [
+          "uv",
+          "run",
+          "kernform",
+          "--agent",
+          "test",
+          "full"
+        ],
+        [
+          "git",
+          "diff",
+          "--check"
+        ]
+      ],
+      "results": {
+        "status": "passed",
+        "summary": "Strict v1/v2 decoding rejects duplicates, non-finite values, unknown fields, initial commits, and unsafe branches. Migration wrappers validate their embedded native plan and project identity, source drift fails before mutation, and apply recomputes the complete plan identity. Focused tests passed; source conformance returned conformant=true; the fast tier passed 85 Python tests plus all Rust/static gates; the full tier passed 96 Python tests with 6 declared skips, five rootless Podman signature builds, source/wheel builds, and clean-wheel verification. Cargo.lock and uv.lock fingerprints were unchanged by this slice."
+      },
+      "unresolved_risks": [
+        "The optional deep fuzz, Miri, mutation, audit, and security tools are outside the maintained alpha full gate and were not run in this slice."
+      ],
+      "next_step": "Converge BlackCell on the public alpha v1 daemon/event contract and RFC 10008 QUERY run-search surface."
+    },
+    {
+      "timestamp": "2026-07-27T00:20:44Z",
+      "objective": "Re-audit the completed Kernform alpha against the original deterministic compiler acceptance criteria and prove the final source state with maintained gates.",
+      "files_touched": [
+        ".agent-worklog.json"
+      ],
+      "tests_run": [
+        [
+          "uv",
+          "run",
+          "kernform",
+          "--agent",
+          "compile",
+          "--form",
+          "fixtures/contracts/valid/kernform.json"
+        ],
+        [
+          "cmp",
+          "/tmp/kernform-audit-plan-1.json",
+          "/tmp/kernform-audit-plan-2.json"
+        ],
+        [
+          "uv",
+          "run",
+          "pytest",
+          "-q",
+          "tests/python/test_lifecycle.py",
+          "tests/python/test_api.py",
+          "tests/contracts/test_frozen_contracts.py",
+          "tests/signatures"
+        ],
+        [
+          "uv",
+          "run",
+          "kernform",
+          "check"
+        ],
+        [
+          "uv",
+          "run",
+          "kernform",
+          "--agent",
+          "test",
+          "fast"
+        ],
+        [
+          "uv",
+          "run",
+          "kernform",
+          "--agent",
+          "test",
+          "full"
+        ],
+        [
+          "git",
+          "diff",
+          "--check"
+        ]
+      ],
+      "results": {
+        "status": "passed",
+        "summary": "Two public compile invocations were byte-identical and produced a schema-valid 65-operation plan with generated, managed, and seeded ownership classes. The focused lifecycle, API, frozen-contract, and signature suite passed 43 tests. Source conformance returned conformant=true. The fast tier passed all Rust format, Clippy, property, unit, documentation, Ruff, formatting, Pyright, and 85 selected Python checks. The full tier passed 96 Python tests with 6 declared skips, five rootless Podman signature builds, source and wheel builds, and clean-wheel verification for Kernform 0.2.0."
+      },
+      "unresolved_risks": [
+        "Optional deep fuzzing, Miri, mutation, audit, and security-tool tiers remain outside the maintained production-alpha gate."
+      ],
+      "next_step": "Await explicit commit or publish authorization; no source edit, commit, push, release, or deployment was performed during this final audit."
+    },
+    {
+      "timestamp": "2026-07-27T01:04:39Z",
+      "objective": "Revalidate the completed Kernform 0.2 alpha for authorized commit and upstream publication.",
+      "files_touched": [
+        ".agent-worklog.json"
+      ],
+      "tests_run": [
+        [
+          "uv",
+          "run",
+          "pytest",
+          "-q",
+          "tests/python/test_lifecycle.py",
+          "tests/python/test_api.py",
+          "tests/contracts/test_frozen_contracts.py",
+          "tests/signatures"
+        ],
+        [
+          "uv",
+          "run",
+          "kernform",
+          "--agent",
+          "check"
+        ],
+        [
+          "uv",
+          "run",
+          "kernform",
+          "--agent",
+          "test",
+          "full"
+        ],
+        [
+          "git",
+          "diff",
+          "--check"
+        ]
+      ],
+      "results": {
+        "status": "passed",
+        "summary": "The publication-focused lifecycle, API, frozen-contract, and signature set passed 43 tests; source conformance returned conformant=true. The maintained full tier passed Rust format, Clippy with warnings denied, Rust unit and property tests, documentation, Ruff, Python formatting, Pyright, 96 Python tests with 6 declared skips, all five rootless Podman signature cases, source and wheel builds, and clean-wheel verification for Kernform 0.2.0."
+      },
+      "unresolved_risks": [
+        "Optional deep fuzzing, Miri, mutation, audit, and security-tool tiers remain outside the maintained production-alpha publication gate."
+      ],
+      "next_step": "Stage only the audited alpha implementation, commit it on main, recheck origin/main ancestry, and push normally."
+    }
+  ]
+}

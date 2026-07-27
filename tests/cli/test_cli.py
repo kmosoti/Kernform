@@ -31,7 +31,7 @@ def test_agent_mode_is_single_line_json_and_never_prompts(
     captured = capsys.readouterr()
     assert captured.err == ""
     assert len(captured.out.splitlines()) == 1
-    assert json.loads(captured.out)["schema"] == "kernform.command/v1"
+    assert json.loads(captured.out)["schema"] == "kernform.command/v2"
 
 
 def test_cli_dispatch_matches_direct_dispatch(capsys: CaptureFixture[str]) -> None:
@@ -52,7 +52,9 @@ def test_adopt_requires_explicit_confirmation(tmp_path: Path) -> None:
 
 def test_all_public_command_groups_parse() -> None:
     samples = [
+        ["compile", "--form", "form.json"],
         ["init", "example"],
+        ["migrate", "plan", "."],
         ["scaffold", "module", "example"],
         ["inspect"],
         ["check"],

@@ -31,7 +31,7 @@ pub struct ConformanceInput {
     pub files: Vec<RenderedFile>,
 }
 
-/// Evaluate every frozen 0.1.0 conformance family in stable diagnostic order.
+/// Evaluate every stable conformance family in deterministic diagnostic order.
 #[must_use]
 pub fn evaluate_conformance(input: &ConformanceInput) -> Vec<Diagnostic> {
     let mut diagnostics = input

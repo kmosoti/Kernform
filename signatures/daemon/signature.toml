@@ -1,0 +1,6 @@
+schema = "kernform.signature/v1"
+id = "daemon"
+version = "1.0.0"
+implies = ["sdk"]
+capabilities = ["daemon"]
+executable = true

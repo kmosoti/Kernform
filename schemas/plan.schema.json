@@ -1,21 +1,23 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:kernform:schema:plan:v1",
-  "title": "Kernform immutable plan v1",
+  "$id": "urn:kernform:schema:plan:v2",
+  "title": "Kernform immutable plan v2",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema", "plan_id", "generator_version", "intent", "catalog", "operations", "diagnostics"],
   "properties": {
-    "schema": {"const": "kernform.plan/v1"},
+    "schema": {"const": "kernform.plan/v2"},
     "plan_id": {"$ref": "#/$defs/sha256"},
     "generator_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
     "intent": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "profile", "capabilities", "git"],
+      "required": ["name", "requested_signatures", "resolved_signatures", "default_signature", "capabilities", "git"],
       "properties": {
         "name": {"type": "string", "pattern": "^[a-z][a-z0-9-]{0,62}$"},
-        "profile": {"enum": ["library", "cli", "api"]},
+        "requested_signatures": {"type": "array", "items": {"$ref": "#/$defs/signature"}, "minItems": 1, "uniqueItems": true},
+        "resolved_signatures": {"type": "array", "items": {"$ref": "#/$defs/signature"}, "minItems": 1, "uniqueItems": true},
+        "default_signature": {"anyOf": [{"$ref": "#/$defs/signature"}, {"type": "null"}]},
         "capabilities": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
         "git": {"type": "boolean"}
       }
@@ -37,6 +39,7 @@
     "diagnostics": {"type": "array", "items": {"$ref": "#/$defs/diagnostic"}}
   },
   "$defs": {
+    "signature": {"enum": ["sdk", "cli", "api", "interactive-web", "daemon"]},
     "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "ownership": {"enum": ["managed", "seeded", "generated", "user", "external"]},
     "operation": {
@@ -111,7 +114,12 @@
       "properties": {
         "id": {"type": "string", "minLength": 1},
         "kind": {"const": "init_git_repository"},
-        "initial_branch": {"type": "string", "minLength": 1}
+        "initial_branch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "pattern": "^(?!HEAD$)(?!@$)(?!-)(?!.*\\.\\.)(?!.*@\\{)(?!.*[ ~^:?*\\[\\\\])(?!.*//)(?!/)(?!.*(?:^|/)\\.)(?!.*\\.lock(?:/|$))(?!.*\\.$)(?!.*/$)[^\\u0000-\\u001f\\u007f]+$"
+        }
       }
     },
     "check": {

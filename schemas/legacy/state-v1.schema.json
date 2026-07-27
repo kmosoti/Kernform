@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kernform:schema:legacy:state:v1",
+  "title": "Kernform legacy managed state v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "generator_version", "project_root", "manifest_hash", "toolchains", "files"],
+  "properties": {
+    "schema": {"const": "kernform.state/v1"},
+    "generator_version": {"type": "string"},
+    "project_root": {"type": "string"},
+    "manifest_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "toolchains": {"type": "object"},
+    "files": {"type": "array"}
+  }
+}

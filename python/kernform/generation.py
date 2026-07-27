@@ -1,4 +1,4 @@
-"""High-level deterministic profile generation over native planning and transactions."""
+"""High-level deterministic signature generation over native planning and transactions."""
 
 from __future__ import annotations
 
@@ -17,67 +17,39 @@ from kernform.models import (
     Ownership,
     PlanRequest,
     PlanResult,
-    Profile,
     RenderedFile,
     RepositorySnapshot,
+    Signature,
+    SignatureResolution,
     to_jsonable,
 )
-
-PROFILE_CAPABILITIES: dict[Profile, tuple[str, ...]] = {
-    Profile.LIBRARY: (
-        "pyo3-bindings",
-        "testing",
-        "locks-base",
-        "ci",
-        "release",
-        "podman",
-        "nushell-human",
-        "nushell-agent",
-    ),
-    Profile.CLI: (
-        "cli",
-        "locks-base",
-        "ci",
-        "release",
-        "podman",
-        "nushell-human",
-        "nushell-agent",
-    ),
-    Profile.API: (
-        "api",
-        "locks-api",
-        "ci",
-        "release",
-        "podman",
-        "nushell-human",
-        "nushell-agent",
-    ),
-}
 
 
 def plan_project(
     *,
     name: str,
-    profile: Profile,
+    signatures: tuple[Signature, ...] = (Signature.SDK,),
+    default_signature: Signature | None = None,
     capabilities: tuple[str, ...] = (),
     git: GitOptions | None = None,
     snapshot: RepositorySnapshot | None = None,
 ) -> PlanResult:
     """Compose capabilities and return an immutable native plan."""
     git = git or GitOptions()
-    requested = tuple(sorted(set(PROFILE_CAPABILITIES[profile]) | set(capabilities)))
-    if "web-server" in requested and profile is not Profile.API:
-        raise ValueError("web-server is supported only by the api profile")
+    resolution = resolve_project_signatures(signatures, default_signature)
+    requested = tuple(sorted(set(resolution.capabilities) | set(capabilities)))
     catalog = load_builtin_catalog()
     module_name = name.replace("-", "_")
     variables = _variables(
-        name, module_name, profile, requested, git, catalog.versions, catalog.images
+        name, module_name, resolution, requested, git, catalog.versions, catalog.images
     )
     files = _rendered_files(requested, variables)
     return plan_initialization(
         PlanRequest(
             name=name,
-            profile=profile,
+            requested_signatures=resolution.requested,
+            resolved_signatures=resolution.resolved,
+            default_signature=resolution.default_signature,
             capabilities=requested,
             git=git,
             snapshot=snapshot or RepositorySnapshot.empty(),
@@ -93,14 +65,16 @@ def initialize_project(request: InitRequest) -> ApplyResult:
         plan = plan_adoption(
             request.destination,
             name=request.name,
-            profile=request.profile,
+            signatures=request.signatures,
+            default_signature=request.default_signature,
             capabilities=request.capabilities,
             git=request.git,
         )
         return apply_adoption(request.destination, plan)
     plan = plan_project(
         name=request.name,
-        profile=request.profile,
+        signatures=request.signatures,
+        default_signature=request.default_signature,
         capabilities=request.capabilities,
         git=request.git,
     )
@@ -111,7 +85,8 @@ def plan_adoption(
     root: Path,
     *,
     name: str,
-    profile: Profile,
+    signatures: tuple[Signature, ...] = (Signature.SDK,),
+    default_signature: Signature | None = None,
     capabilities: tuple[str, ...] = (),
     git: GitOptions | None = None,
 ) -> PlanResult:
@@ -122,7 +97,8 @@ def plan_adoption(
     snapshot = inspect_repository(root, state_json)
     return plan_project(
         name=name,
-        profile=profile,
+        signatures=signatures,
+        default_signature=default_signature,
         capabilities=capabilities,
         git=git,
         snapshot=snapshot,
@@ -158,10 +134,47 @@ def _rendered_files(
     return tuple(files)
 
 
+def resolve_project_signatures(
+    signatures: tuple[Signature, ...],
+    default_signature: Signature | None = None,
+) -> SignatureResolution:
+    """Resolve signature implication and runtime selection in the native kernel."""
+    raw: object = json.loads(
+        _native.resolve_signatures_json(_json(signatures), _json(default_signature))
+    )
+    if not isinstance(raw, dict):
+        raise ValueError("native signature resolver did not return an object")
+    value = cast(dict[str, object], raw)
+    requested = value.get("requested")
+    resolved = value.get("resolved")
+    capabilities = value.get("capabilities")
+    runtime = value.get("default_signature")
+    requested_items = _string_tuple(requested, "requested")
+    resolved_items = _string_tuple(resolved, "resolved")
+    capability_items = _string_tuple(capabilities, "capabilities")
+    if runtime is not None and not isinstance(runtime, str):
+        raise ValueError("native signature resolver returned invalid fields")
+    return SignatureResolution(
+        requested=tuple(Signature(item) for item in requested_items),
+        resolved=tuple(Signature(item) for item in resolved_items),
+        capabilities=capability_items,
+        default_signature=Signature(runtime) if isinstance(runtime, str) else None,
+    )
+
+
+def _string_tuple(value: object, label: str) -> tuple[str, ...]:
+    if not isinstance(value, list):
+        raise ValueError(f"native signature resolver returned invalid {label}")
+    items = cast(list[object], value)
+    if not all(isinstance(item, str) for item in items):
+        raise ValueError(f"native signature resolver returned invalid {label}")
+    return tuple(cast(list[str], items))
+
+
 def _variables(
     name: str,
     module_name: str,
-    profile: Profile,
+    resolution: SignatureResolution,
     capabilities: tuple[str, ...],
     git: GitOptions,
     versions: dict[str, str],
@@ -171,20 +184,32 @@ def _variables(
         f'"python", "-c", "import {module_name}; print({module_name}.native_version())"'
     )
     agent_entrypoint = runtime_entrypoint
-    if profile is Profile.CLI:
+    if resolution.default_signature is Signature.CLI:
         runtime_entrypoint = f'"{name}", "20", "22", "--agent"'
         agent_entrypoint = f'"python", "-m", "{module_name}.cli"'
-    elif profile is Profile.API:
-        app_module = "web" if "web-server" in capabilities else "app"
+    elif resolution.default_signature in (Signature.API, Signature.INTERACTIVE_WEB):
+        app_module = "web" if resolution.default_signature is Signature.INTERACTIVE_WEB else "app"
         runtime_entrypoint = (
             f'"granian", "--interface", "asgi", "{module_name}.{app_module}:app", '
             '"--host", "0.0.0.0", "--port", "8000"'
         )
+    elif resolution.default_signature is Signature.DAEMON:
+        runtime_entrypoint = f'"python", "-m", "{module_name}.daemon"'
+        agent_entrypoint = runtime_entrypoint
     capability_list = ", ".join(f'"{item}"' for item in capabilities)
+    requested_signature_list = ", ".join(f'"{item}"' for item in resolution.requested)
+    resolved_signature_list = ", ".join(f'"{item}"' for item in resolution.resolved)
+    runtime_default_line = (
+        f'default_signature = "{resolution.default_signature}"'
+        if resolution.default_signature is not None
+        else ""
+    )
     result = {
         "project_name": name,
         "module_name": module_name,
-        "profile": str(profile),
+        "requested_signature_list": requested_signature_list,
+        "resolved_signature_list": resolved_signature_list,
+        "runtime_default_line": runtime_default_line,
         "capability_list": capability_list,
         "git_enabled": "true" if git.enabled else "false",
         "catalog_id": load_builtin_catalog().id,

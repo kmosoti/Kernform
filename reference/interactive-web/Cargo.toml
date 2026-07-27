@@ -1,0 +1,21 @@
+[workspace]
+members = [
+  "crates/example-interactive-web-core",
+  "crates/example-interactive-web-python",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.96.0"
+
+[workspace.dependencies]
+pyo3 = { version = "=0.29.0", features = ["extension-module"] }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }

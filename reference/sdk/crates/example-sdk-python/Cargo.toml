@@ -1,0 +1,16 @@
+[package]
+name = "example-sdk-python"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[lib]
+name = "_native"
+crate-type = ["cdylib"]
+
+[dependencies]
+example_sdk-core = { package = "example-sdk-core", path = "../example-sdk-core" }
+pyo3.workspace = true
+
+[lints]
+workspace = true

@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import cast
 
 from kernform.cli import build_parser
-from kernform.models import Ownership, Profile, ReleasePhase
+from kernform.models import Ownership, ReleasePhase, Signature
 from kernform.output import OutputFormat
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -13,10 +13,10 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def test_frozen_schema_identifiers() -> None:
     expected = {
-        "kernform": "urn:kernform:schema:kernform:v1",
-        "state": "urn:kernform:schema:state:v1",
-        "plan": "urn:kernform:schema:plan:v1",
-        "command": "urn:kernform:schema:command:v1",
+        "kernform": "urn:kernform:schema:project-form:v2",
+        "state": "urn:kernform:schema:state:v2",
+        "plan": "urn:kernform:schema:plan:v2",
+        "command": "urn:kernform:schema:command:v2",
     }
     observed: dict[str, object] = {}
     for name in expected:
@@ -28,7 +28,13 @@ def test_frozen_schema_identifiers() -> None:
 
 
 def test_frozen_public_enumerations() -> None:
-    assert tuple(Profile) == (Profile.LIBRARY, Profile.CLI, Profile.API)
+    assert tuple(Signature) == (
+        Signature.SDK,
+        Signature.CLI,
+        Signature.API,
+        Signature.INTERACTIVE_WEB,
+        Signature.DAEMON,
+    )
     assert tuple(Ownership) == (
         Ownership.MANAGED,
         Ownership.SEEDED,
@@ -52,8 +58,10 @@ def test_frozen_command_groups() -> None:
     assert isinstance(choices, dict)
     typed_choices = cast(dict[str, object], choices)
     assert tuple(typed_choices) == (
+        "compile",
         "init",
         "adopt",
+        "migrate",
         "scaffold",
         "inspect",
         "check",

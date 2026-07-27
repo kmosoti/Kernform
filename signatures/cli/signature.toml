@@ -1,0 +1,6 @@
+schema = "kernform.signature/v1"
+id = "cli"
+version = "1.0.0"
+implies = ["sdk"]
+capabilities = ["cli"]
+executable = true

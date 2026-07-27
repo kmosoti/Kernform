@@ -4,12 +4,12 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use kernform_core::{
-    CoreError, ManagedState, Plan, ProjectIntent, RenderedFile, RepositorySnapshot, VersionCatalog,
-    check_web_policy, plan_initialization,
+    CoreError, ManagedState, Plan, ProjectIntent, RenderedFile, RepositorySnapshot, Signature,
+    VersionCatalog, check_web_policy, plan_initialization, validate_plan_identity,
 };
 use kernform_engine::{
     EngineError, GitLifecycle, ReleaseManager, SystemProcessExecutor, TransactionExecutor,
-    inspect_repository_with_git, render_embedded_capabilities,
+    inspect_repository_with_git, render_embedded_capabilities, resolve_embedded_signatures,
 };
 use pyo3::create_exception;
 use pyo3::exceptions::{PyException, PyValueError};
@@ -19,6 +19,7 @@ use serde::de::DeserializeOwned;
 
 mod builtins {
     include!(concat!(env!("OUT_DIR"), "/builtin_capabilities.rs"));
+    include!(concat!(env!("OUT_DIR"), "/builtin_signatures.rs"));
 }
 
 create_exception!(_native, KernformNativeError, PyException);
@@ -92,6 +93,14 @@ fn apply_plan_json(
 }
 
 #[pyfunction]
+fn validate_plan_json(plan_json: &str) -> PyResult<String> {
+    let plan = decode::<Plan>(plan_json, "plan")?;
+    validate_plan_identity(&plan)
+        .map_err(|error| map_core_error(&error))
+        .and_then(|()| encode(&plan))
+}
+
+#[pyfunction]
 fn check_web_policy_json(py: Python<'_>, files_json: &str) -> PyResult<String> {
     let files = decode::<Vec<RenderedFile>>(files_json, "rendered files")?;
     let diagnostics = py.detach(move || check_web_policy(&files));
@@ -111,6 +120,22 @@ fn render_capabilities_json(
     })
     .map_err(|error| map_engine_error(&error))
     .and_then(|files| encode(&files))
+}
+
+#[pyfunction]
+fn resolve_signatures_json(
+    py: Python<'_>,
+    requested_json: &str,
+    default_signature_json: &str,
+) -> PyResult<String> {
+    let requested = decode::<BTreeSet<Signature>>(requested_json, "requested signatures")?;
+    let default_signature =
+        decode::<Option<Signature>>(default_signature_json, "default signature")?;
+    py.detach(move || {
+        resolve_embedded_signatures(builtins::BUILTIN_SIGNATURES, &requested, default_signature)
+    })
+    .map_err(|error| map_engine_error(&error))
+    .and_then(|resolution| encode(&resolution))
 }
 
 #[pyfunction]
@@ -190,6 +215,10 @@ fn map_core_error(error: &CoreError) -> PyErr {
 fn core_error_kind(error: &CoreError) -> &'static str {
     match error {
         CoreError::InvalidIntent { .. } => "invalid_intent",
+        CoreError::UnknownSignature { .. } => "unknown_signature",
+        CoreError::SignatureCycle { .. } => "signature_cycle",
+        CoreError::InvalidRuntimeSignature { .. } => "invalid_runtime_signature",
+        CoreError::AmbiguousRuntime { .. } => "ambiguous_runtime",
         CoreError::UnknownCapability { .. } => "unknown_capability",
         CoreError::CapabilityCycle { .. } => "capability_cycle",
         CoreError::CapabilityConflict { .. } => "capability_conflict",
@@ -257,8 +286,10 @@ fn _native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(plan_initialization_json, module)?)?;
     module.add_function(wrap_pyfunction!(inspect_repository_json, module)?)?;
     module.add_function(wrap_pyfunction!(apply_plan_json, module)?)?;
+    module.add_function(wrap_pyfunction!(validate_plan_json, module)?)?;
     module.add_function(wrap_pyfunction!(check_web_policy_json, module)?)?;
     module.add_function(wrap_pyfunction!(render_capabilities_json, module)?)?;
+    module.add_function(wrap_pyfunction!(resolve_signatures_json, module)?)?;
     module.add_function(wrap_pyfunction!(git_initial_commit_json, module)?)?;
     module.add_function(wrap_pyfunction!(release_start_json, module)?)?;
     module.add_function(wrap_pyfunction!(release_inspect_json, module)?)?;

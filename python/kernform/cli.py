@@ -6,6 +6,7 @@ import argparse
 import json
 import shutil
 import sys
+import tomllib
 from collections.abc import Sequence
 from pathlib import Path
 from typing import NoReturn, cast
@@ -28,14 +29,19 @@ from kernform.errors import (
     KernformPreconditionError,
     KernformProcessError,
 )
-from kernform.generation import apply_adoption, initialize_project, plan_adoption
+from kernform.generation import apply_adoption, initialize_project, plan_adoption, plan_project
+from kernform.migration import (
+    apply_project_migration,
+    parse_migration_plan,
+    plan_project_migration,
+)
 from kernform.models import (
     ApplyRequest,
     GitOptions,
     InitRequest,
     PlanResult,
-    Profile,
     ReleasePhase,
+    Signature,
     to_jsonable,
 )
 from kernform.output import (
@@ -46,6 +52,13 @@ from kernform.output import (
     failure,
     render,
     success,
+)
+from kernform.project_form import (
+    LEGACY_PROJECT_SCHEMA,
+    PROJECT_FORM_SCHEMA,
+    ProjectForm,
+    parse_project_form_json,
+    read_project_form,
 )
 from kernform.release_artifacts import build_release_bundle, export_oci_image
 from kernform.scaffold import scaffold_module
@@ -66,17 +79,22 @@ class Parser(argparse.ArgumentParser):
 
 
 def build_parser() -> Parser:
-    """Build the frozen 0.1.0 command grammar."""
+    """Build the stable 0.2.0 command grammar."""
     parser = Parser(prog="kernform")
     parser.add_argument("--version", action="store_true", help="show the Kernform version")
     parser.add_argument("--agent", action="store_true", help="use noninteractive agent policy")
     parser.add_argument("--format", choices=[item.value for item in OutputFormat])
     commands = parser.add_subparsers(dest="command")
 
+    compile_command = commands.add_parser("compile", help="compile project-form JSON")
+    compile_command.add_argument("--form", required=True)
+
     init = commands.add_parser("init", help="initialize a new project")
-    init.add_argument("name")
+    init.add_argument("name", nargs="?")
     init.add_argument("--destination", type=Path)
-    init.add_argument("--profile", choices=["library", "cli", "api"], default="library")
+    init.add_argument("--form")
+    init.add_argument("--signature", choices=[item.value for item in Signature], action="append")
+    init.add_argument("--default-signature", choices=[item.value for item in Signature])
     init.add_argument("--with", dest="capabilities", action="append", default=[])
     init.add_argument("--no-git", action="store_true")
     init.add_argument("--initial-commit", action="store_true")
@@ -85,11 +103,23 @@ def build_parser() -> Parser:
     adopt = commands.add_parser("adopt", help="adopt an existing project")
     adopt.add_argument("path", type=Path, nargs="?", default=Path.cwd())
     adopt.add_argument("--plan-file", type=Path)
+    adopt.add_argument("--form")
     adopt.add_argument("--name")
-    adopt.add_argument("--profile", choices=["library", "cli", "api"], default="library")
+    adopt.add_argument("--signature", choices=[item.value for item in Signature], action="append")
+    adopt.add_argument("--default-signature", choices=[item.value for item in Signature])
     adopt.add_argument("--with", dest="capabilities", action="append", default=[])
     adopt.add_argument("--no-git", action="store_true")
     adopt.add_argument("--yes", action="store_true")
+
+    migrate = commands.add_parser("migrate", help="plan or apply an explicit v1 migration")
+    migrate_commands = migrate.add_subparsers(dest="migrate_command", required=True)
+    migrate_plan = migrate_commands.add_parser("plan")
+    migrate_plan.add_argument("path", type=Path)
+    migrate_plan.add_argument("--form")
+    migrate_apply = migrate_commands.add_parser("apply")
+    migrate_apply.add_argument("path", type=Path)
+    migrate_apply.add_argument("--plan-file", type=Path, required=True)
+    migrate_apply.add_argument("--yes", action="store_true")
 
     scaffold = commands.add_parser("scaffold", help="add a declared scaffold")
     scaffold.add_argument("kind")
@@ -148,6 +178,20 @@ def dispatch(args: argparse.Namespace) -> CommandEnvelope:
         return success("version", version())
     if command is None:
         raise CliUsageError("a command is required")
+    if command == "compile":
+        form = _read_form(cast(str, args.form))
+        return success(
+            "compile",
+            plan_project(
+                name=form.name,
+                signatures=form.signatures,
+                default_signature=form.default_signature,
+                capabilities=form.capabilities,
+                git=form.git,
+            ).document,
+        )
+    if command == "migrate":
+        return _migrate(args)
     if command == "inspect":
         root = cast(Path, args.path)
         return success("inspect", to_jsonable(inspect_repository(root)))
@@ -248,34 +292,50 @@ def _apply_command(args: argparse.Namespace, command: str) -> CommandEnvelope:
             ),
             refused=True,
         )
-    root = (
-        cast(Path, args.path)
-        if command == "adopt"
-        else cast(Path | None, args.destination) or Path(cast(str, args.name))
+    form = (
+        None
+        if plan_path is not None
+        else _form_from_arguments(
+            args,
+            fallback_name=(
+                cast(Path, args.path).name.replace("_", "-").lower() if command == "adopt" else None
+            ),
+        )
     )
+    if command == "adopt":
+        root = cast(Path, args.path)
+    else:
+        destination = cast(Path | None, args.destination)
+        direct_name = cast(str | None, args.name)
+        if destination is None and direct_name is None and form is None:
+            raise CliUsageError("init with --plan-file requires NAME or --destination")
+        root = destination or Path(direct_name or cast(ProjectForm, form).name)
     if plan_path is not None:
         plan = PlanResult(plan_path.read_text(encoding="utf-8"))
         applied = apply_plan(ApplyRequest(root, plan, new_project=command == "init"))
     elif command == "init":
+        typed_form = cast(ProjectForm, form)
         applied = initialize_project(
             InitRequest(
-                name=cast(str, args.name),
+                name=typed_form.name,
                 destination=root,
-                profile=Profile(cast(str, args.profile)),
-                capabilities=tuple(cast(list[str], args.capabilities)),
-                git=GitOptions(enabled=not cast(bool, args.no_git)),
+                signatures=typed_form.signatures,
+                default_signature=typed_form.default_signature,
+                capabilities=typed_form.capabilities,
+                git=typed_form.git,
             )
         )
         if cast(bool, args.initial_commit):
             git_initial_commit(root)
     else:
-        name = cast(str | None, args.name) or root.name.replace("_", "-").lower()
+        typed_form = cast(ProjectForm, form)
         plan = plan_adoption(
             root,
-            name=name,
-            profile=Profile(cast(str, args.profile)),
-            capabilities=tuple(cast(list[str], args.capabilities)),
-            git=GitOptions(enabled=not cast(bool, args.no_git)),
+            name=typed_form.name,
+            signatures=typed_form.signatures,
+            default_signature=typed_form.default_signature,
+            capabilities=typed_form.capabilities,
+            git=typed_form.git,
         )
         applied = apply_adoption(root, plan)
     return success(
@@ -289,11 +349,83 @@ def _apply_command(args: argparse.Namespace, command: str) -> CommandEnvelope:
     )
 
 
+def _form_from_arguments(
+    args: argparse.Namespace, *, fallback_name: str | None = None
+) -> ProjectForm:
+    source = cast(str | None, args.form)
+    if source is not None:
+        return _read_form(source)
+    name = cast(str | None, args.name) or fallback_name
+    if name is None:
+        raise CliUsageError("init requires NAME or --form FILE|-")
+    signature_values = cast(list[str] | None, args.signature) or [Signature.SDK.value]
+    default_value = cast(str | None, args.default_signature)
+    return ProjectForm(
+        name=name,
+        signatures=tuple(Signature(value) for value in signature_values),
+        default_signature=Signature(default_value) if default_value is not None else None,
+        capabilities=tuple(cast(list[str], args.capabilities)),
+        git=GitOptions(enabled=not cast(bool, args.no_git)),
+    )
+
+
+def _read_form(source: str) -> ProjectForm:
+    raw = sys.stdin.read() if source == "-" else Path(source).read_text(encoding="utf-8")
+    return parse_project_form_json(raw)
+
+
+def _migrate(args: argparse.Namespace) -> CommandEnvelope:
+    action = cast(str, args.migrate_command)
+    root = cast(Path, args.path)
+    if action == "plan":
+        source = cast(str | None, args.form)
+        target = _read_form(source) if source is not None else None
+        migration = plan_project_migration(root, target)
+        return success("migrate plan", migration.document)
+    if not cast(bool, args.yes):
+        return failure(
+            "migrate apply",
+            5,
+            Diagnostic(
+                "KF-STATE-001",
+                "error",
+                "migration apply requires explicit --yes confirmation",
+            ),
+            refused=True,
+        )
+    plan_path = cast(Path, args.plan_file)
+    migration = parse_migration_plan(plan_path.read_text(encoding="utf-8"))
+    applied = apply_project_migration(root, migration)
+    return success(
+        "migrate apply",
+        {
+            "migration_id": migration.migration_id,
+            "plan_id": applied.plan_id,
+            "operation_count": applied.operation_count,
+            "state_path": str(applied.state_path),
+        },
+        artifacts=(Artifact("managed-state", str(applied.state_path)),),
+    )
+
+
 def _check(root: Path) -> CommandEnvelope:
     state_path = root / ".kernform/state.json"
+    manifest_schema = _manifest_schema(root)
     if not state_path.is_file():
         manifest = root / "kernform.toml"
         if manifest.is_file():
+            if manifest_schema == LEGACY_PROJECT_SCHEMA:
+                legacy = read_project_form(root, allow_legacy=True)
+                return success(
+                    "check",
+                    {
+                        "conformant": False,
+                        "legacy_schema": LEGACY_PROJECT_SCHEMA,
+                        "migration_required": True,
+                        "mapped_signatures": [str(item) for item in legacy.signatures],
+                        "managed_state": False,
+                    },
+                )
             versions = inspect_version_state(root)
             required = (
                 "crates/kernform-core",
@@ -367,7 +499,42 @@ def _check(root: Path) -> CommandEnvelope:
                 {"paths": sorted(changed)},
             ),
         )
+    if manifest_schema == LEGACY_PROJECT_SCHEMA:
+        legacy = read_project_form(root, allow_legacy=True)
+        return success(
+            "check",
+            {
+                "conformant": True,
+                "legacy_schema": LEGACY_PROJECT_SCHEMA,
+                "migration_required": True,
+                "mapped_signatures": [str(item) for item in legacy.signatures],
+                "files_checked": len(snapshot.files),
+            },
+        )
+    if manifest_schema != PROJECT_FORM_SCHEMA or state.get("schema") != "kernform.state/v2":
+        return failure(
+            "check",
+            2,
+            Diagnostic(
+                "KF-STATE-001",
+                "error",
+                "project form and managed state must use their v2 schemas",
+                {
+                    "project_form_schema": manifest_schema,
+                    "state_schema": state.get("schema"),
+                },
+            ),
+        )
     return success("check", {"conformant": True, "files_checked": len(snapshot.files)})
+
+
+def _manifest_schema(root: Path) -> object:
+    path = root / "kernform.toml"
+    if not path.is_file():
+        return None
+    with path.open("rb") as source:
+        document = cast(dict[str, object], tomllib.load(source))
+    return document.get("schema")
 
 
 def _doctor() -> CommandEnvelope:

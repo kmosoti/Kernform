@@ -1,8 +1,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use kernform_core::{
-    CapabilitySpec, GitIntent, Ownership, Profile, ProjectIntent, RenderedFile, RepositorySnapshot,
-    VersionCatalog, finalize_catalog, plan_initialization, resolve_capabilities,
+    CapabilitySpec, GitIntent, Ownership, ProjectIntent, RenderedFile, RepositorySnapshot,
+    Signature, VersionCatalog, finalize_catalog, plan_initialization, resolve_capabilities,
 };
 use proptest::prelude::*;
 use semver::Version;
@@ -64,7 +64,9 @@ proptest! {
         let plan = plan_initialization(
             ProjectIntent {
                 name: "example".to_owned(),
-                profile: Profile::Library,
+                requested_signatures: BTreeSet::from([Signature::Sdk]),
+                resolved_signatures: BTreeSet::from([Signature::Sdk]),
+                default_signature: None,
                 capabilities: BTreeSet::new(),
                 git: GitIntent::default(),
             },

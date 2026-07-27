@@ -30,7 +30,9 @@ def plan_initialization(request: PlanRequest) -> PlanResult:
     """Produce an immutable plan without performing effects."""
     intent = {
         "name": request.name,
-        "profile": request.profile,
+        "requested_signatures": request.requested_signatures,
+        "resolved_signatures": request.resolved_signatures,
+        "default_signature": request.default_signature,
         "capabilities": sorted(request.capabilities),
         "git": request.git,
     }

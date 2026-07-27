@@ -133,10 +133,7 @@ fn collect_files(
             .map_err(|error| EngineError::Policy {
                 message: error.to_string(),
             })?;
-        if relative == Path::new(".git")
-            || relative.starts_with(Path::new(".git"))
-            || relative.starts_with(Path::new(".kernform/transactions"))
-        {
+        if excluded_from_snapshot(relative) {
             continue;
         }
         let file_type = entry
@@ -149,6 +146,28 @@ fn collect_files(
         }
     }
     Ok(())
+}
+
+fn excluded_from_snapshot(relative: &Path) -> bool {
+    const EFFECT_DIRECTORIES: &[&str] = &[
+        ".git",
+        ".mypy_cache",
+        ".nox",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".tox",
+        ".venv",
+        "__pycache__",
+        "dist",
+        "node_modules",
+        "target",
+    ];
+    relative.starts_with(Path::new(".kernform/transactions"))
+        || relative
+            .components()
+            .next()
+            .and_then(|component| component.as_os_str().to_str())
+            .is_some_and(|component| EFFECT_DIRECTORIES.contains(&component))
 }
 
 #[cfg(test)]
@@ -170,6 +189,12 @@ mod tests {
             b"journal",
         )
         .unwrap();
+        fs::create_dir(directory.path().join("target")).unwrap();
+        fs::write(
+            directory.path().join("target/build-artifact"),
+            b"large effect",
+        )
+        .unwrap();
         fs::write(directory.path().join("README.md"), b"read me").unwrap();
         let snapshot = inspect_repository(directory.path(), None).unwrap();
         assert!(snapshot.git);
@@ -187,6 +212,9 @@ mod tests {
             schema: "kernform.state/v1".to_owned(),
             generator_version: "0.1.0".to_owned(),
             project_root: "example".to_owned(),
+            requested_signatures: std::collections::BTreeSet::new(),
+            resolved_signatures: std::collections::BTreeSet::new(),
+            default_signature: None,
             manifest_hash: hash_bytes(b""),
             toolchains: kernform_core::ToolchainState {
                 catalog_id: "stable-test".to_owned(),

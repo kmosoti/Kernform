@@ -1,11 +1,13 @@
 {
-  "schema": "kernform/v1",
-  "generator_version": "0.1.0",
+  "schema": "kernform.project-form/v2",
+  "generator_version": "0.2.0",
   "project": {
     "name": "example-project",
-    "profile": "api",
+    "requested_signatures": ["interactive-web"],
+    "resolved_signatures": ["sdk", "api", "interactive-web"],
     "capabilities": ["api", "python-package", "web-server"]
   },
+  "runtime": {"default_signature": "interactive-web"},
   "git": {
     "enabled": true,
     "initial_branch": "main",
@@ -15,7 +17,8 @@
   "versions": {
     "policy": "newest-stable-exact",
     "allow_prerelease": false,
-    "offline_catalog": "fixtures/catalogs/stable-v1.json"
+    "catalog_id": "stable-2026-07-17",
+    "catalog_hash": "1111111111111111111111111111111111111111111111111111111111111111"
   },
   "web": {"javascript": "none"},
   "containers": {"engine": "podman", "rootless": true}

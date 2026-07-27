@@ -1,10 +1,14 @@
-schema = "kernform/v1"
-generator_version = "0.1.0"
+schema = "kernform.project-form/v2"
+generator_version = "0.2.0"
 
 [project]
 name = "{{ project_name }}"
-profile = "{{ profile }}"
+requested_signatures = [{{ requested_signature_list }}]
+resolved_signatures = [{{ resolved_signature_list }}]
 capabilities = [{{ capability_list }}]
+
+[runtime]
+{{ runtime_default_line }}
 
 [git]
 enabled = {{ git_enabled }}

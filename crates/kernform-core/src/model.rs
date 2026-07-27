@@ -3,13 +3,28 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-/// Canonical project profiles.
+/// Canonical composable project signatures.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum Profile {
-    Library,
+#[serde(rename_all = "kebab-case")]
+pub enum Signature {
+    Sdk,
     Cli,
     Api,
+    InteractiveWeb,
+    Daemon,
+}
+
+impl std::fmt::Display for Signature {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let value = match self {
+            Self::Sdk => "sdk",
+            Self::Cli => "cli",
+            Self::Api => "api",
+            Self::InteractiveWeb => "interactive-web",
+            Self::Daemon => "daemon",
+        };
+        formatter.write_str(value)
+    }
 }
 
 /// File ownership values frozen for the v1 state contract.
@@ -25,6 +40,7 @@ pub enum Ownership {
 
 /// Local Git intent. Remote creation is intentionally not representable.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GitIntent {
     pub enabled: bool,
     pub initial_branch: String,
@@ -41,17 +57,21 @@ impl Default for GitIntent {
     }
 }
 
-/// User intent consumed by profile and capability resolution.
+/// User intent after deterministic signature and capability resolution.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ProjectIntent {
     pub name: String,
-    pub profile: Profile,
+    pub requested_signatures: BTreeSet<Signature>,
+    pub resolved_signatures: BTreeSet<Signature>,
+    pub default_signature: Option<Signature>,
     pub capabilities: BTreeSet<String>,
     pub git: GitIntent,
 }
 
 /// One exact version catalog frozen into an immutable plan.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct VersionCatalog {
     pub id: String,
     pub hash: String,
@@ -63,6 +83,7 @@ pub struct VersionCatalog {
 
 /// Snapshot metadata for one observed repository file.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SnapshotFile {
     pub hash: String,
     pub ownership: Option<Ownership>,
@@ -70,6 +91,7 @@ pub struct SnapshotFile {
 
 /// Side-effect-free representation of observed repository state.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(deny_unknown_fields)]
 pub struct RepositorySnapshot {
     pub exists: bool,
     pub git: bool,
@@ -79,6 +101,7 @@ pub struct RepositorySnapshot {
 
 /// Fully rendered desired content supplied to the pure planner.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct RenderedFile {
     pub path: String,
     pub content: String,
@@ -95,7 +118,7 @@ pub enum DocumentFormat {
 
 /// Explicit operations that may be executed by the engine.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Operation {
     CreateDirectory {
         id: String,
@@ -159,6 +182,7 @@ pub enum Severity {
 
 /// Stable diagnostic envelope.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Diagnostic {
     pub id: String,
     pub severity: Severity,
@@ -168,6 +192,7 @@ pub struct Diagnostic {
 
 /// Immutable initialization or adoption plan.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Plan {
     pub schema: String,
     pub plan_id: String,
@@ -178,17 +203,21 @@ pub struct Plan {
     pub diagnostics: Vec<Diagnostic>,
 }
 
-/// Intent projection frozen into the v1 plan schema.
+/// Intent projection frozen into the v2 plan schema.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PlanIntent {
     pub name: String,
-    pub profile: Profile,
+    pub requested_signatures: BTreeSet<Signature>,
+    pub resolved_signatures: BTreeSet<Signature>,
+    pub default_signature: Option<Signature>,
     pub capabilities: BTreeSet<String>,
     pub git: bool,
 }
 
 /// File recorded by managed state.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct StateFile {
     pub path: String,
     pub hash: String,
@@ -197,6 +226,7 @@ pub struct StateFile {
 
 /// Catalog identity retained in managed state.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ToolchainState {
     pub catalog_id: String,
     pub catalog_hash: String,
@@ -204,10 +234,17 @@ pub struct ToolchainState {
 
 /// Deterministic managed state written by the engine.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ManagedState {
     pub schema: String,
     pub generator_version: String,
     pub project_root: String,
+    #[serde(default)]
+    pub requested_signatures: BTreeSet<Signature>,
+    #[serde(default)]
+    pub resolved_signatures: BTreeSet<Signature>,
+    #[serde(default)]
+    pub default_signature: Option<Signature>,
     pub manifest_hash: String,
     pub toolchains: ToolchainState,
     pub files: Vec<StateFile>,
@@ -224,6 +261,7 @@ pub enum CommandStatus {
 
 /// Command artifact reference.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Artifact {
     pub kind: String,
     pub path: String,
@@ -232,6 +270,7 @@ pub struct Artifact {
 
 /// Stable command result envelope shared by Rust, Python, and CLI output.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct CommandEnvelope {
     pub schema: String,
     pub command: String,
@@ -254,6 +293,7 @@ pub enum ReleasePhase {
 
 /// Pure release-flow state stored by the application layer.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ReleaseState {
     pub version: String,
     pub branch: String,

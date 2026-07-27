@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kernform:schema:migration-plan:v1",
+  "title": "Kernform explicit project migration plan v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "migration_id",
+    "source_schema",
+    "target_schema",
+    "source_manifest_hash",
+    "project_name",
+    "plan"
+  ],
+  "properties": {
+    "schema": {"const": "kernform.migration-plan/v1"},
+    "migration_id": {"$ref": "#/$defs/sha256"},
+    "source_schema": {"const": "kernform/v1"},
+    "target_schema": {"const": "kernform.project-form/v2"},
+    "source_manifest_hash": {"$ref": "#/$defs/sha256"},
+    "project_name": {"type": "string", "pattern": "^[a-z][a-z0-9-]{0,62}$"},
+    "plan": {"type": "object"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

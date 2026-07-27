@@ -1,0 +1,16 @@
+[package]
+name = "example-daemon-python"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[lib]
+name = "_native"
+crate-type = ["cdylib"]
+
+[dependencies]
+example_daemon-core = { package = "example-daemon-core", path = "../example-daemon-core" }
+pyo3.workspace = true
+
+[lints]
+workspace = true

@@ -1,4 +1,4 @@
-# Kernform 0.1.0 acceptance
+# Kernform 0.2.0 acceptance
 
 ## Repository gate
 
@@ -10,9 +10,9 @@ uv run kernform --agent test fast
 uv run kernform --agent test full
 ```
 
-The full tier regenerates and builds `library`, `cli`, `api`, and `api + web-server`; installs from
-exact Cargo and uv locks; checks the unborn `main`/no-remote defaults; repeats initialization with
-zero operations; builds clean wheel/source artifacts; and exercises rootless Podman CI/runtime
+The full tier regenerates and builds `sdk`, `cli`, `api`, `interactive-web`, and `daemon`; installs
+from exact Cargo and uv locks; checks the unborn `main`/no-remote defaults; repeats initialization
+with zero operations; builds clean wheel/source artifacts; and exercises rootless Podman CI/runtime
 targets. On the required release baseline, Podman must report `host.security.rootless=true`.
 
 ## Defining generated-project case
@@ -23,8 +23,8 @@ Run from the Kernform checkout:
 workdir=$(mktemp -d)
 uv run kernform --agent init example \
   --destination "$workdir/example" \
-  --profile api \
-  --with web-server
+  --signature interactive-web \
+  --default-signature interactive-web
 git -C "$workdir/example" symbolic-ref --short HEAD
 git -C "$workdir/example" remote
 git -C "$workdir/example" rev-parse --verify HEAD
@@ -34,8 +34,8 @@ uv run --directory "$workdir/example" pytest
 uv run kernform --agent check "$workdir/example"
 uv run kernform --agent init example \
   --destination "$workdir/example" \
-  --profile api \
-  --with web-server
+  --signature interactive-web \
+  --default-signature interactive-web
 uv run kernform --agent container test --path "$workdir/example"
 ```
 
@@ -46,9 +46,11 @@ Expected invariants are `main`, no remote, no valid `HEAD`, passing locked build
 ## Durable evidence
 
 - `tests/contracts`: frozen schemas, enumerations, diagnostics, and command grammar
-- `tests/profiles` and `tests/reference`: clean build/install/idempotence and exact regeneration
+- `tests/signatures` and `tests/reference`: composition, conflict rejection, clean
+  build/install/idempotence, and exact regeneration
+- `tests/python/test_lifecycle.py`: compile, check, apply, adopt, and explicit v1 migration
 - `tests/containers` and `tests/shell`: runtime isolation and host-dependent evidence
 - `tests/git_release` and `tests/ci_release`: local release state and immutable artifact promotion
-- `reference/*`: four derived review projects, including exact locks and CI
+- `reference/*`: five derived review projects, including exact locks and CI
 
 No commit, tag, push, release, or remote metadata mutation is part of repository acceptance.

@@ -8,8 +8,18 @@ from pathlib import Path
 from typing import cast
 
 
-class Profile(StrEnum):
-    """Frozen 0.1.0 project profiles."""
+class Signature(StrEnum):
+    """Composable project signatures accepted by the v2 project form."""
+
+    SDK = "sdk"
+    CLI = "cli"
+    API = "api"
+    INTERACTIVE_WEB = "interactive-web"
+    DAEMON = "daemon"
+
+
+class LegacyProfile(StrEnum):
+    """Read-only decoder values for explicit v1 project migration."""
 
     LIBRARY = "library"
     CLI = "cli"
@@ -89,11 +99,23 @@ class RenderedFile:
 
 
 @dataclass(frozen=True, slots=True)
+class SignatureResolution:
+    """Native deterministic signature closure."""
+
+    requested: tuple[Signature, ...]
+    resolved: tuple[Signature, ...]
+    capabilities: tuple[str, ...]
+    default_signature: Signature | None
+
+
+@dataclass(frozen=True, slots=True)
 class PlanRequest:
     """Typed pure-planning request."""
 
     name: str
-    profile: Profile
+    requested_signatures: tuple[Signature, ...]
+    resolved_signatures: tuple[Signature, ...]
+    default_signature: Signature | None
     capabilities: tuple[str, ...]
     git: GitOptions
     snapshot: RepositorySnapshot
@@ -107,7 +129,8 @@ class InitRequest:
 
     name: str
     destination: Path
-    profile: Profile = Profile.LIBRARY
+    signatures: tuple[Signature, ...] = (Signature.SDK,)
+    default_signature: Signature | None = None
     capabilities: tuple[str, ...] = ()
     git: GitOptions = GitOptions()
 
@@ -209,6 +232,13 @@ def to_jsonable(value: object) -> object:
             "path": value.path,
             "content": value.content,
             "ownership": to_jsonable(value.ownership),
+        }
+    if isinstance(value, SignatureResolution):
+        return {
+            "requested": to_jsonable(value.requested),
+            "resolved": to_jsonable(value.resolved),
+            "capabilities": to_jsonable(value.capabilities),
+            "default_signature": to_jsonable(value.default_signature),
         }
     if isinstance(value, ReleaseState):
         return {

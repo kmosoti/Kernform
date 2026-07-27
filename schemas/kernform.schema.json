@@ -1,25 +1,43 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:kernform:schema:kernform:v1",
-  "title": "Kernform manifest v1",
+  "$id": "urn:kernform:schema:project-form:v2",
+  "title": "Kernform project form v2",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema", "generator_version", "project", "git", "versions", "web", "containers"],
+  "required": ["schema", "project", "runtime", "git"],
   "properties": {
-    "schema": {"const": "kernform/v1"},
+    "schema": {"const": "kernform.project-form/v2"},
     "generator_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
     "project": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "profile", "capabilities"],
+      "required": ["name", "requested_signatures", "capabilities"],
       "properties": {
         "name": {"type": "string", "pattern": "^[a-z][a-z0-9-]{0,62}$"},
-        "profile": {"enum": ["library", "cli", "api"]},
+        "requested_signatures": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/signature"},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "resolved_signatures": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/signature"},
+          "minItems": 1,
+          "uniqueItems": true
+        },
         "capabilities": {
           "type": "array",
           "items": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
           "uniqueItems": true
         }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "default_signature": {"$ref": "#/$defs/signature"}
       }
     },
     "git": {
@@ -28,19 +46,25 @@
       "required": ["enabled", "initial_branch", "initial_commit", "create_remote"],
       "properties": {
         "enabled": {"type": "boolean"},
-        "initial_branch": {"type": "string", "minLength": 1},
-        "initial_commit": {"type": "boolean"},
+        "initial_branch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "pattern": "^(?!HEAD$)(?!@$)(?!-)(?!.*\\.\\.)(?!.*@\\{)(?!.*[ ~^:?*\\[\\\\])(?!.*//)(?!/)(?!.*(?:^|/)\\.)(?!.*\\.lock(?:/|$))(?!.*\\.$)(?!.*/$)[^\\u0000-\\u001f\\u007f]+$"
+        },
+        "initial_commit": {"const": false},
         "create_remote": {"const": false}
       }
     },
     "versions": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["policy", "allow_prerelease", "offline_catalog"],
+      "required": ["policy", "allow_prerelease", "catalog_id", "catalog_hash"],
       "properties": {
         "policy": {"const": "newest-stable-exact"},
         "allow_prerelease": {"const": false},
-        "offline_catalog": {"type": "string", "minLength": 1}
+        "catalog_id": {"type": "string", "minLength": 1},
+        "catalog_hash": {"$ref": "#/$defs/sha256"}
       }
     },
     "web": {
@@ -58,5 +82,9 @@
         "rootless": {"const": true}
       }
     }
+  },
+  "$defs": {
+    "signature": {"enum": ["sdk", "cli", "api", "interactive-web", "daemon"]},
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
   }
 }

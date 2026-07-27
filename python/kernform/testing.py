@@ -80,7 +80,7 @@ _FULL = (
     *_STATIC_STEPS,
     TierStep("python-full-tests", ("uv", "run", "pytest", "-m", "not deep"), 1800),
     TierStep(
-        "container-profile-matrix",
+        "container-signature-matrix",
         ("uv", "run", "pytest", "tests/containers", "-m", "container"),
         3600,
         environment=(("KERNFORM_CONTAINER_SMOKE", "1"),),

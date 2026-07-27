@@ -14,6 +14,62 @@ pub fn file_hash(content: &str) -> String {
     crate::catalog::sha256_hex(content.as_bytes())
 }
 
+/// Validate one local branch name without invoking Git or touching a repository.
+///
+/// This implements the conservative subset accepted by `git check-ref-format --branch` that
+/// Kernform permits in project forms and generated initialization operations.
+///
+/// # Errors
+///
+/// Returns an invalid-intent error for unsafe or reserved branch names.
+pub fn validate_initial_branch(branch: &str) -> Result<(), CoreError> {
+    let invalid = branch.is_empty()
+        || branch.len() > 255
+        || branch == "HEAD"
+        || branch == "@"
+        || branch.starts_with('-')
+        || branch.starts_with('/')
+        || branch.ends_with('/')
+        || branch.contains("//")
+        || branch.contains("..")
+        || branch.contains("@{")
+        || branch.bytes().any(|byte| byte < 32 || byte == 127)
+        || branch
+            .chars()
+            .any(|character| matches!(character, ' ' | '~' | '^' | ':' | '?' | '*' | '[' | '\\'))
+        || branch.split('/').any(|component| {
+            component.is_empty()
+                || component.starts_with('.')
+                || component.ends_with('.')
+                || component
+                    .rsplit_once('.')
+                    .is_some_and(|(_, extension)| extension == "lock")
+        });
+    if invalid {
+        return Err(CoreError::InvalidIntent {
+            message: "initial branch is not a safe local Git branch name".to_owned(),
+        });
+    }
+    Ok(())
+}
+
+/// Verify that a serialized plan identity still binds its complete semantic content.
+///
+/// # Errors
+///
+/// Returns an invalid-intent or serialization error when the plan was changed after compilation.
+pub fn validate_plan_identity(plan: &Plan) -> Result<(), CoreError> {
+    let mut identity_input = plan.clone();
+    identity_input.plan_id.clear();
+    let expected = file_hash(&canonical_json(&identity_input)?);
+    if plan.plan_id != expected {
+        return Err(CoreError::InvalidIntent {
+            message: "plan ID does not match the canonical plan content".to_owned(),
+        });
+    }
+    Ok(())
+}
+
 /// Produce an immutable deterministic initialization or adoption plan.
 ///
 /// # Errors
@@ -49,12 +105,14 @@ pub fn plan_initialization(
     });
 
     let mut plan = Plan {
-        schema: "kernform.plan/v1".to_owned(),
+        schema: "kernform.plan/v2".to_owned(),
         plan_id: String::new(),
         generator_version: crate::VERSION.to_owned(),
         intent: PlanIntent {
             name: intent.name,
-            profile: intent.profile,
+            requested_signatures: intent.requested_signatures,
+            resolved_signatures: intent.resolved_signatures,
+            default_signature: intent.default_signature,
             capabilities: intent.capabilities,
             git: intent.git.enabled,
         },
@@ -63,6 +121,7 @@ pub fn plan_initialization(
         diagnostics,
     };
     plan.plan_id = file_hash(&canonical_json(&plan)?);
+    validate_plan_identity(&plan)?;
     Ok(plan)
 }
 
@@ -178,12 +237,30 @@ fn validate_intent(intent: &ProjectIntent) -> Result<(), CoreError> {
             message: "project name must match ^[a-z][a-z0-9-]{0,62}$".to_owned(),
         });
     }
+    if intent.requested_signatures.is_empty()
+        || !intent
+            .requested_signatures
+            .is_subset(&intent.resolved_signatures)
+    {
+        return Err(CoreError::InvalidIntent {
+            message: "resolved signatures must contain every requested signature".to_owned(),
+        });
+    }
+    if intent
+        .default_signature
+        .is_some_and(|signature| !intent.resolved_signatures.contains(&signature))
+    {
+        return Err(CoreError::InvalidIntent {
+            message: "default signature must be part of the resolved signature set".to_owned(),
+        });
+    }
     if intent.git.initial_commit {
         return Err(CoreError::InvalidIntent {
             message: "initial commits require the explicit release/Git operation boundary"
                 .to_owned(),
         });
     }
+    validate_initial_branch(&intent.git.initial_branch)?;
     Ok(())
 }
 
@@ -213,7 +290,7 @@ fn validate_relative_path(raw: &str) -> Result<(), CoreError> {
 mod tests {
     use std::collections::{BTreeMap, BTreeSet};
 
-    use crate::{GitIntent, Profile, SnapshotFile, finalize_catalog};
+    use crate::{GitIntent, Signature, SnapshotFile, finalize_catalog};
 
     use super::*;
 
@@ -235,7 +312,9 @@ mod tests {
     fn intent() -> ProjectIntent {
         ProjectIntent {
             name: "example".to_owned(),
-            profile: Profile::Library,
+            requested_signatures: BTreeSet::from([Signature::Sdk]),
+            resolved_signatures: BTreeSet::from([Signature::Sdk]),
+            default_signature: None,
             capabilities: BTreeSet::from(["python-package".to_owned()]),
             git: GitIntent::default(),
         }
@@ -328,5 +407,65 @@ mod tests {
                 path: "../escape".to_owned()
             }
         );
+    }
+
+    #[test]
+    fn rejects_unsafe_initial_branches() {
+        for branch in [
+            "HEAD",
+            "@",
+            "-topic",
+            "topic.",
+            "topic.lock",
+            "topic//child",
+            "topic..child",
+            "topic@{child",
+            "topic child",
+            "topic/.child",
+            "topic/child.lock",
+            "topic\\child",
+        ] {
+            let mut invalid = intent();
+            invalid.git.initial_branch = branch.to_owned();
+            assert!(matches!(
+                plan_initialization(
+                    invalid,
+                    &RepositorySnapshot::default(),
+                    catalog(),
+                    Vec::new(),
+                ),
+                Err(CoreError::InvalidIntent { .. })
+            ));
+        }
+        assert!(validate_initial_branch("feature/safe-name").is_ok());
+    }
+
+    #[test]
+    fn plan_identity_binds_complete_content() {
+        let mut plan = plan_initialization(
+            intent(),
+            &RepositorySnapshot::default(),
+            catalog(),
+            vec![RenderedFile {
+                path: "README.md".to_owned(),
+                content: "original\n".to_owned(),
+                ownership: Ownership::Generated,
+            }],
+        )
+        .unwrap();
+        assert!(validate_plan_identity(&plan).is_ok());
+        let Operation::WriteFile { content, .. } = plan
+            .operations
+            .iter_mut()
+            .find(|operation| matches!(operation, Operation::WriteFile { .. }))
+            .unwrap()
+        else {
+            panic!("test plan must contain a write");
+        };
+        *content = "tampered\n".to_owned();
+        assert!(matches!(
+            validate_plan_identity(&plan),
+            Err(CoreError::InvalidIntent { .. })
+        ));
     }
 }

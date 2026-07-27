@@ -1,10 +1,14 @@
-schema = "kernform/v1"
-generator_version = "0.1.0"
+schema = "kernform.project-form/v2"
+generator_version = "0.2.0"
 
 [project]
 name = "kernform"
-profile = "cli"
+requested_signatures = ["cli"]
+resolved_signatures = ["sdk", "cli"]
 capabilities = ["python-package", "rust-core", "pyo3-bindings", "testing", "locks-base", "ci", "release", "podman", "nushell-human", "nushell-agent", "cli"]
+
+[runtime]
+default_signature = "cli"
 
 [git]
 enabled = true
@@ -15,7 +19,8 @@ create_remote = false
 [versions]
 policy = "newest-stable-exact"
 allow_prerelease = false
-offline_catalog = "fixtures/catalogs/stable-v1.json"
+catalog_id = "stable-2026-07-18-linux-amd64"
+catalog_hash = "b83d3720ba10c51b49a5d349069b3cf194a613fdf813056e58b3fbc61675fb8b"
 
 [web]
 javascript = "none"

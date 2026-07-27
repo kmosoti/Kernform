@@ -1,5 +1,5 @@
 {
-  "schema": "kernform.command/v1",
+  "schema": "kernform.command/v2",
   "command": "init",
   "status": "success",
   "exit_code": 0,

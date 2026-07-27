@@ -10,9 +10,9 @@ import kernform
 from kernform.errors import KernformPolicyError
 
 
-def test_profile_plan_is_deterministic_and_has_safe_destinations() -> None:
-    first = kernform.plan_project(name="example", profile=kernform.Profile.LIBRARY)
-    second = kernform.plan_project(name="example", profile=kernform.Profile.LIBRARY)
+def test_signature_plan_is_deterministic_and_has_safe_destinations() -> None:
+    first = kernform.plan_project(name="example", signatures=(kernform.Signature.SDK,))
+    second = kernform.plan_project(name="example", signatures=(kernform.Signature.SDK,))
     assert first.json == second.json
     operations_value = first.document["operations"]
     assert isinstance(operations_value, list)
@@ -34,7 +34,7 @@ def test_unknown_capability_is_refused_before_mutation() -> None:
     with pytest.raises(KernformPolicyError, match="unknown capability"):
         kernform.plan_project(
             name="example",
-            profile=kernform.Profile.LIBRARY,
+            signatures=(kernform.Signature.SDK,),
             capabilities=("unknown",),
         )
 
@@ -69,8 +69,7 @@ def test_api_web_output_has_no_javascript_or_node_artifacts(tmp_path: Path) -> N
         kernform.InitRequest(
             name="api-web",
             destination=destination,
-            profile=kernform.Profile.API,
-            capabilities=("web-server",),
+            signatures=(kernform.Signature.INTERACTIVE_WEB,),
             git=kernform.GitOptions(enabled=False),
         )
     )

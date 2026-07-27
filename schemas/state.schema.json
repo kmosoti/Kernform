@@ -1,14 +1,17 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:kernform:schema:state:v1",
-  "title": "Kernform managed state v1",
+  "$id": "urn:kernform:schema:state:v2",
+  "title": "Kernform managed state v2",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema", "generator_version", "project_root", "manifest_hash", "toolchains", "files"],
+  "required": ["schema", "generator_version", "project_root", "requested_signatures", "resolved_signatures", "default_signature", "manifest_hash", "toolchains", "files"],
   "properties": {
-    "schema": {"const": "kernform.state/v1"},
+    "schema": {"const": "kernform.state/v2"},
     "generator_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
     "project_root": {"type": "string", "minLength": 1},
+    "requested_signatures": {"type": "array", "items": {"$ref": "#/$defs/signature"}, "minItems": 1, "uniqueItems": true},
+    "resolved_signatures": {"type": "array", "items": {"$ref": "#/$defs/signature"}, "minItems": 1, "uniqueItems": true},
+    "default_signature": {"anyOf": [{"$ref": "#/$defs/signature"}, {"type": "null"}]},
     "manifest_hash": {"$ref": "#/$defs/sha256"},
     "toolchains": {
       "type": "object",
@@ -25,6 +28,7 @@
     }
   },
   "$defs": {
+    "signature": {"enum": ["sdk", "cli", "api", "interactive-web", "daemon"]},
     "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "file": {
       "type": "object",

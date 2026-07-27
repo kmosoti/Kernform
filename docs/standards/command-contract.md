@@ -1,6 +1,6 @@
 # Command contract
 
-Machine output uses `kernform.command/v1` with these required fields:
+Machine output uses `kernform.command/v2` with these required fields:
 
 - `schema`
 - `command`

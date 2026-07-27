@@ -1,0 +1,36 @@
+FROM docker.io/library/python:3.14.6-slim@sha256:d4fea6e20c09820028eea3f5c17f5b8ebd2ecb9c2bf28e561681a74a96090e4f AS python-base
+FROM docker.io/library/rust:1.96.0-slim@sha256:811d6caab4a84e6148c8722128993c1caf152156868b2b66f3a26af189b0dad8 AS builder
+
+COPY --from=python-base /usr/local /usr/local
+WORKDIR /workspace
+COPY . .
+RUN python -m pip install --no-cache-dir maturin==1.14.1 \
+        pytest==9.0.3 uv==0.11.26 \
+    && python -m maturin build --release --locked --out /dist
+
+FROM builder AS ci
+RUN cargo test --workspace --locked \
+    && python -m pip install --no-cache-dir /dist/*.whl \
+    && python -m pytest
+
+FROM builder AS dev-human
+RUN python -m pip install --no-cache-dir /dist/*.whl
+USER 1000:1000
+CMD ["/bin/sh"]
+
+FROM builder AS dev-agent
+ENV NO_COLOR=1 PAGER=cat TERM=dumb
+RUN python -m pip install --no-cache-dir /dist/*.whl
+USER 1000:1000
+ENTRYPOINT ["python", "-m", "example_daemon.daemon"]
+
+FROM python-base AS runtime
+RUN groupadd --gid 65532 app \
+    && useradd --uid 65532 --gid 65532 --no-create-home --home-dir /nonexistent app
+COPY --from=builder /dist /dist
+RUN python -m pip install --no-cache-dir /dist/*.whl && rm -rf /dist
+USER 65532:65532
+WORKDIR /app
+EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=3s CMD ["python", "-c", "import example_daemon; assert example_daemon.native_version()"]
+ENTRYPOINT ["python", "-m", "example_daemon.daemon"]

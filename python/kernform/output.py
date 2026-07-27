@@ -41,7 +41,7 @@ class Artifact:
 
 @dataclass(frozen=True, slots=True)
 class CommandEnvelope:
-    """Frozen `kernform.command/v1` result."""
+    """Stable `kernform.command/v2` result."""
 
     command: str
     status: str
@@ -49,7 +49,7 @@ class CommandEnvelope:
     result: object
     diagnostics: tuple[Diagnostic, ...] = ()
     artifacts: tuple[Artifact, ...] = ()
-    schema: str = "kernform.command/v1"
+    schema: str = "kernform.command/v2"
 
     def document(self) -> dict[str, object]:
         """Return the exact schema-shaped object."""

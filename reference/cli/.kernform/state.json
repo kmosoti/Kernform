@@ -1,8 +1,16 @@
 {
-  "schema": "kernform.state/v1",
-  "generator_version": "0.1.0",
+  "schema": "kernform.state/v2",
+  "generator_version": "0.2.0",
   "project_root": "example-cli",
-  "manifest_hash": "279ee8f221ccd61c0c93eccbd885d7e817b17786fbfa8544e18dd50e1e4b6897",
+  "requested_signatures": [
+    "cli"
+  ],
+  "resolved_signatures": [
+    "sdk",
+    "cli"
+  ],
+  "default_signature": "cli",
+  "manifest_hash": "d32b3129a04e91907a3610c558ed1ac58fa9ee5822dbf116206a9d878035a4ca",
   "toolchains": {
     "catalog_id": "stable-2026-07-18-linux-amd64",
     "catalog_hash": "b83d3720ba10c51b49a5d349069b3cf194a613fdf813056e58b3fbc61675fb8b"
@@ -45,7 +53,7 @@
     },
     {
       "path": "README.md",
-      "hash": "6c82479e96d42d43ad52345c44a023d000d90a6f24d1689a04ace081548d5ee8",
+      "hash": "bbcd40c7b67ec04ab9b5814ae1afbc128b30dab276784223675bc0e52bca31ae",
       "ownership": "seeded"
     },
     {
@@ -90,7 +98,7 @@
     },
     {
       "path": "kernform.toml",
-      "hash": "279ee8f221ccd61c0c93eccbd885d7e817b17786fbfa8544e18dd50e1e4b6897",
+      "hash": "d32b3129a04e91907a3610c558ed1ac58fa9ee5822dbf116206a9d878035a4ca",
       "ownership": "managed"
     },
     {

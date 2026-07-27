@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:kernform:schema:command:v1",
-  "title": "Kernform command result v1",
+  "$id": "urn:kernform:schema:command:v2",
+  "title": "Kernform command result v2",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema", "command", "status", "exit_code", "result", "diagnostics", "artifacts"],
   "properties": {
-    "schema": {"const": "kernform.command/v1"},
+    "schema": {"const": "kernform.command/v2"},
     "command": {"type": "string", "minLength": 1},
     "status": {"enum": ["success", "failure", "refused"]},
     "exit_code": {"type": "integer", "minimum": 0, "maximum": 5},

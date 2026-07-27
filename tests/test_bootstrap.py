@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_native_version_matches_distribution() -> None:
-    assert kernform.version() == kernform.__version__ == "0.1.0"
+    assert kernform.version() == kernform.__version__ == "0.2.0"
 
 
 def test_canonical_workspace_paths_exist() -> None:
@@ -18,7 +18,7 @@ def test_canonical_workspace_paths_exist() -> None:
         "crates",
         "docs",
         "fixtures",
-        "profiles",
+        "signatures",
         "python",
         "reference",
         "schemas",

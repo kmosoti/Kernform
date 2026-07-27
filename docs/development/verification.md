@@ -6,7 +6,7 @@ Tier membership is emitted without execution by `kernform --agent test <tier> --
 
 - `fast`: Rust format, Clippy, unit/doc tests; Python format, lint, strict types, unit, contract,
   boundary, scaffold, and deterministic-planner tests.
-- `full`: fast static gates plus all non-deep Python tests, four clean generated-profile builds,
+- `full`: fast static gates plus all non-deep Python tests, five clean generated-signature builds,
   exact-lock installs, idempotence, clean wheel/sdist verification, and the rootless Podman matrix.
 - `deep`: full plus release-mode Rust tests, stress/property/performance canaries, and optional
   fuzz, Miri, mutation, dependency-audit, and security tools. Missing optional tools are reported as

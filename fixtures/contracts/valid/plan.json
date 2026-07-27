@@ -1,10 +1,12 @@
 {
-  "schema": "kernform.plan/v1",
+  "schema": "kernform.plan/v2",
   "plan_id": "0000000000000000000000000000000000000000000000000000000000000000",
-  "generator_version": "0.1.0",
+  "generator_version": "0.2.0",
   "intent": {
     "name": "example-project",
-    "profile": "api",
+    "requested_signatures": ["interactive-web"],
+    "resolved_signatures": ["sdk", "api", "interactive-web"],
+    "default_signature": "interactive-web",
     "capabilities": ["api", "python-package", "web-server"],
     "git": true
   },

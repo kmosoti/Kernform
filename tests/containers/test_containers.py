@@ -118,16 +118,17 @@ def test_podman_info_shape_is_json() -> None:
 @pytest.mark.full
 @pytest.mark.container
 @pytest.mark.parametrize(
-    ("profile", "web"),
+    ("signature", "web"),
     [
-        ("library", False),
+        ("sdk", False),
         ("cli", False),
         ("api", False),
-        ("api", True),
+        ("interactive-web", True),
+        ("daemon", False),
     ],
-    ids=["library", "cli", "api", "api-web"],
+    ids=["sdk", "cli", "api", "interactive-web", "daemon"],
 )
-def test_generated_profile_container_matrix(tmp_path: Path, profile: str, web: bool) -> None:
+def test_generated_signature_container_matrix(tmp_path: Path, signature: str, web: bool) -> None:
     if os.environ.get("KERNFORM_CONTAINER_SMOKE") != "1":
         pytest.skip("container matrix is run explicitly by the maintained full tier")
     if shutil.which("podman") is None:
@@ -135,15 +136,13 @@ def test_generated_profile_container_matrix(tmp_path: Path, profile: str, web: b
 
     import kernform
 
-    name = f"container-{profile}{'-web' if web else ''}"
+    name = f"container-{signature}"
     root = tmp_path / name
-    capabilities = ("web-server",) if web else ()
     kernform.initialize_project(
         kernform.InitRequest(
             name=name,
             destination=root,
-            profile=kernform.Profile(profile),
-            capabilities=capabilities,
+            signatures=(kernform.Signature(signature),),
             git=kernform.GitOptions(enabled=False),
         )
     )
@@ -173,11 +172,11 @@ def test_generated_profile_container_matrix(tmp_path: Path, profile: str, web: b
             timeout_seconds=120,
         )
         assert runtime_probe.exit_code == 0
-        if profile == "api":
+        if signature in {"api", "interactive-web"}:
             container_operation(root, "run")
             _wait_for_health(context.host_port, expect_web=web)
     finally:
-        _cleanup_profile_containers(context)
+        _cleanup_signature_containers(context)
 
 
 def _wait_for_health(port: int, *, expect_web: bool) -> None:
@@ -200,7 +199,7 @@ def _wait_for_health(port: int, *, expect_web: bool) -> None:
         assert "<script" not in html
 
 
-def _cleanup_profile_containers(context: ContainerContext) -> None:
+def _cleanup_signature_containers(context: ContainerContext) -> None:
     for name in (context.runtime_name, context.development_name, context.test_name):
         run_process(
             ("podman", "rm", "--force", "--ignore", name),

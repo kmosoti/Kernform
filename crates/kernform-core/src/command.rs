@@ -10,7 +10,7 @@ pub fn command_success(
     artifacts: Vec<Artifact>,
 ) -> CommandEnvelope {
     CommandEnvelope {
-        schema: "kernform.command/v1".to_owned(),
+        schema: "kernform.command/v2".to_owned(),
         command: command.into(),
         status: CommandStatus::Success,
         exit_code: 0,
@@ -29,7 +29,7 @@ pub fn command_failure(
     diagnostics: Vec<Diagnostic>,
 ) -> CommandEnvelope {
     CommandEnvelope {
-        schema: "kernform.command/v1".to_owned(),
+        schema: "kernform.command/v2".to_owned(),
         command: command.into(),
         status: if refused {
             CommandStatus::Refused

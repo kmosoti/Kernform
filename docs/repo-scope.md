@@ -10,7 +10,7 @@ Kernform creates and maintains deterministic local Python/Rust project structure
 - pure planning and conformance evaluation
 - controlled local filesystem, process, Git, provider, transaction, and container effects
 - installable Python API and CLI backed by a private PyO3 adapter
-- declarative profiles, capabilities, templates, Podman assets, and Nushell surfaces
+- composable signatures, declarative capabilities, templates, Podman assets, and Nushell surfaces
 - generated reference projects, test tiers, CI intent, and immutable release evidence
 
 ## Out of scope

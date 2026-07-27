@@ -1,0 +1,6 @@
+schema = "kernform.signature/v1"
+id = "api"
+version = "1.0.0"
+implies = ["sdk"]
+capabilities = ["api", "locks-api"]
+executable = true

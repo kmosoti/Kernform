@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "kernform"
-version = "0.1.0"
+version = "0.2.0"
 description = "Deterministic project lifecycle initializer for Python and Rust projects."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -30,7 +30,11 @@ manifest-path = "crates/kernform-python/Cargo.toml"
 module-name = "kernform._native"
 python-source = "python"
 features = ["pyo3/extension-module"]
-include = [{ path = "capabilities/**/*", format = "sdist" }]
+include = [
+  { path = "capabilities/**/*", format = "sdist" },
+  { path = "signatures/**/*", format = "sdist" },
+  { path = "schemas/**/*", format = "sdist" },
+]
 
 [tool.ruff]
 line-length = 100

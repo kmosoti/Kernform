@@ -16,6 +16,7 @@ from kernform.generation import (
     initialize_project,
     plan_adoption,
     plan_project,
+    resolve_project_signatures,
 )
 from kernform.models import (
     ApplyRequest,
@@ -25,11 +26,12 @@ from kernform.models import (
     Ownership,
     PlanRequest,
     PlanResult,
-    Profile,
     ReleasePhase,
     ReleaseState,
     RenderedFile,
     RepositorySnapshot,
+    Signature,
+    SignatureResolution,
     VersionCatalog,
 )
 
@@ -41,11 +43,12 @@ __all__ = [
     "Ownership",
     "PlanRequest",
     "PlanResult",
-    "Profile",
     "ReleasePhase",
     "ReleaseState",
     "RenderedFile",
     "RepositorySnapshot",
+    "Signature",
+    "SignatureResolution",
     "VersionCatalog",
     "apply_adoption",
     "apply_plan",
@@ -59,6 +62,7 @@ __all__ = [
     "release_inspect",
     "release_start",
     "release_verify",
+    "resolve_project_signatures",
     "version",
 ]
-__version__ = "0.1.0"
+__version__ = "0.2.0"
